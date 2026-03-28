@@ -399,10 +399,23 @@ function App() {
             </h1>
             
             <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '20px', borderRadius: '12px', marginBottom: '30px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-              <h3 style={{ color: '#93c5fd', margin: '0 0 10px 0' }}>🌟 Daily Challenge #{getDailyChallenge().dayNumber}</h3>
-              <p style={{ margin: '0 0 15px 0', fontSize: '1.1rem' }}>
-                <strong>{getDailyChallenge().pair.start.replace(/_/g, ' ')}</strong> ➡️ <strong>{getDailyChallenge().pair.target.replace(/_/g, ' ')}</strong>
-              </p>
+              <h3 style={{ color: '#93c5fd', margin: '0 0 15px 0' }}>🌟 Daily Challenge #{getDailyChallenge().dayNumber}</h3>
+              
+              {/* --- NEW: VERTICAL STACKED LAYOUT --- */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', margin: '0 0 20px 0', fontSize: '1.2rem' }}>
+                <strong style={{ textAlign: 'center', color: 'white' }}>
+                  {getDailyChallenge().pair.start.replace(/_/g, ' ')}
+                </strong>
+                
+                <div style={{ background: 'rgba(59, 130, 246, 0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  ⬇️ To ⬇️
+                </div>
+                
+                <strong style={{ textAlign: 'center', color: '#4ade80' }}>
+                  {getDailyChallenge().pair.target.replace(/_/g, ' ')}
+                </strong>
+              </div>
+
               <button onClick={startDailyMode} className="btn-success" style={{ width: '100%', padding: '12px', fontSize: '1.1rem' }}>
                 Play Daily Mode 🗓️
               </button>

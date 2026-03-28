@@ -430,6 +430,22 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     font-size: 1.1rem !important; 
     font-weight: 800 !important;
   }
+  /* --- FIX MULTIPLAYER ROUTE INPUTS ON MOBILE --- */
+  .input-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  
+  /* Rotate the horizontal arrow to point down */
+  .input-row > span {
+    transform: rotate(90deg) !important;
+    margin: 5px 0 !important;
+  }
+
+  .autocomplete-wrapper {
+    width: 100% !important;
+  }
 }
 /*-- End of phone --*/
 
