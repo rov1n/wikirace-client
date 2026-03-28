@@ -180,6 +180,26 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 .mobile-header-bar, .close-menu-btn {
   display: none;
 }
+/* --- CURRENT PLAYER HIGHLIGHTS --- */
+.current-player, .current-player-result {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border: 1px solid rgba(59, 130, 246, 0.4) !important;
+}
+
+.current-player-sidebar {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-radius: 6px;
+  padding-left: 8px !important;
+  border-left: 3px solid #3b82f6 !important;
+}
+
+.you-badge {
+  font-size: 0.8em;
+  color: #93c5fd;
+  font-style: italic;
+  font-weight: 500;
+  margin-left: 6px;
+}
 /* --- ULTIMATE MOBILE OVERHAUL --- */
 /* --- SCORCHED EARTH MOBILE OVERHAUL --- */
 @media (max-width: 900px) {
@@ -333,6 +353,46 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     border-left: none !important;
     border-top: 1px solid var(--glass-border) !important;
     background: rgba(15, 23, 42, 0.98) !important;
+  }
+
+  /* -- end page -- */
+  /* --- GAME OVER SCREEN MOBILE FIX --- */
+  .round-results-list li {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+
+  .result-name-group {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    /* Adds a sleek subtle divider between the name and the stats */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 12px !important;
+  }
+
+  .result-stats {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important; /* Spreads Time, Clicks, and Points evenly */
+    align-items: center !important;
+    margin: 0 !important;
+  }
+
+  /* Scale down the secondary stats so they don't crowd the points */
+  .result-stats span {
+    font-size: 0.85rem !important; 
+    white-space: nowrap !important;
+  }
+
+  /* Keep the main points popping */
+  .result-points {
+    font-size: 1.1rem !important; 
+    font-weight: 800 !important;
   }
 }
 /*-- End of phone --*/
