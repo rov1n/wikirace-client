@@ -218,7 +218,43 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
   }
   .lobby-chat {
     margin-top: 15px;
-    min-height: 300px; /* Gives chat plenty of room */
+    min-height: 300px; 
+  }
+
+  /* --- GAME OVER SCREEN MOBILE FIX --- */
+  .round-results-list li {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+
+  .result-name-group {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 12px !important;
+  }
+
+  .result-stats {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin: 0 !important;
+  }
+
+  .result-stats span {
+    font-size: 0.85rem !important; 
+    white-space: nowrap !important;
+  }
+
+  .result-points {
+    font-size: 1.1rem !important; 
+    font-weight: 800 !important;
   }
   .game-wrapper {
     display: flex !important;

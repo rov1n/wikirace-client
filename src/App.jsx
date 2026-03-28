@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import './App.css';
+import { getDailyChallenge } from './dailyPairs';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://wikirace-server.onrender.com';
 const socket = io(BACKEND_URL);
@@ -18,7 +19,7 @@ const TimerDisplay = ({ startTime, hasFinished }) => {
 };
 
 function App() {
-  const [gameState, setGameState] = useState('LOBBY');
+  const [gameState, setGameState] = useState('LOBBY'); 
   const [roomCode, setRoomCode] = useState('');
   const [playerName, setPlayerName] = useState('');
   const [players, setPlayers] = useState([]);
@@ -27,7 +28,6 @@ function App() {
   const [roomHostId, setRoomHostId] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  // Rulebook synced from the server (Fallback is 1)
   const [serverConfig, setServerConfig] = useState({ UNDO_PENALTY: 1 });
 
   const [startNode, setStartNode] = useState('Discord_(software)');
@@ -41,6 +41,7 @@ function App() {
   const [hasFinished, setHasFinished] = useState(false);
   const [isErrorPage, setIsErrorPage] = useState(false);
   const [roundResults, setRoundResults] = useState([]);
+  const [dailyStats, setDailyStats] = useState(null); 
 
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [targetSuggestions, setTargetSuggestions] = useState([]);
@@ -63,7 +64,7 @@ function App() {
   }, [chatMessages]);
 
   useEffect(() => {
-    if (hasFinished && gameState === 'PLAYING') {
+    if (hasFinished && (gameState === 'PLAYING' || gameState === 'PLAYING_DAILY')) {
       window.scrollTo(0, 0); 
       document.body.style.overflow = 'hidden'; 
     } else {
@@ -139,6 +140,47 @@ function App() {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
+  };
+
+  const calculateDailyScore = (clicks, timeInSeconds) => {
+    const base = serverConfig.BASE_SCORE || 5000;
+    const clickPen = serverConfig.CLICK_PENALTY || 200;
+    const timePen = serverConfig.TIME_PENALTY || 5;
+    const min = serverConfig.MIN_SCORE || 100;
+
+    let finalScore = base - (clicks * clickPen) - (timeInSeconds * timePen);
+    return Math.max(min, Math.floor(finalScore));
+  };
+
+  const startDailyMode = () => {
+    const dailyData = getDailyChallenge();
+    setStartNode(dailyData.pair.start);
+    setTargetNode(dailyData.pair.target);
+    
+    setHasFinished(false);
+    setIsErrorPage(false);
+    setGameState('PLAYING_DAILY'); 
+    setClickCount(0);
+    setPath([dailyData.pair.start]);
+    setStartTime(Date.now());
+    setIsMenuOpen(false); 
+    fetchArticle(dailyData.pair.start);
+  };
+
+  const generateShareText = (dayNumber, clicks, timeStr, optimalClicks, points) => {
+    let ratingEmoji = '🟩'; 
+    if (clicks > optimalClicks + 2) ratingEmoji = '🟨'; 
+    if (clicks > optimalClicks + 5) ratingEmoji = '🟥'; 
+
+    let pathBlocks = '';
+    for (let i = 0; i < clicks - 1; i++) {
+        if (i < 8) pathBlocks += '🟦'; 
+    }
+    pathBlocks += ratingEmoji; 
+
+    const shareString = `WikiRace Daily #${dayNumber}\n🏆 ${points} pts\n⏱️ ${timeStr} | 🖱️ ${clicks} Clicks\n${pathBlocks}\n\nCan you beat me? Play at: rovin.vercel.app`;
+    navigator.clipboard.writeText(shareString);
+    alert('Results copied to clipboard! Paste it to your friends.');
   };
 
   const joinLobby = (e) => {
@@ -228,9 +270,35 @@ function App() {
   };
 
   const giveUp = () => {
-    socket.emit('playerGaveUp', roomCode, playerName);
     setHasFinished(true); 
     setIsMenuOpen(false); 
+    if (gameState === 'PLAYING') {
+      socket.emit('playerGaveUp', roomCode, playerName);
+    } else if (gameState === 'PLAYING_DAILY') {
+      setDailyStats({ 
+        time: Math.floor((Date.now() - startTime) / 1000), 
+        clicks: clickCount, 
+        points: 0 
+      });
+      // Immediately swap to the dedicated game over screen!
+      setGameState('GAMEOVER_DAILY');
+    }
+  };
+  const handleLogoClick = () => {
+    if (gameState === 'PLAYING') {
+      if (window.confirm("Return to main menu? This counts as giving up!")) {
+        socket.emit('playerGaveUp', roomCode, playerName);
+        setHasFinished(false);
+        setGameState('LOBBY');
+      }
+    } else if (gameState === 'PLAYING_DAILY') {
+      if (window.confirm("End your daily run and return to the menu?")) {
+        setHasFinished(false);
+        setGameState('LOBBY');
+      }
+    } else {
+      setGameState('LOBBY');
+    }
   };
 
   const kickPlayer = (id) => socket.emit('kickPlayer', roomCode, id);
@@ -304,26 +372,97 @@ function App() {
 
     if (newTitle.toLowerCase().replace(/_/g, ' ') === targetNode.toLowerCase().replace(/_/g, ' ')) {
       const finalTime = Math.floor((Date.now() - startTime) / 1000);
-      socket.emit('playerWon', roomCode, playerName, newClickCount, finalTime);
       setHasFinished(true); 
+
+      if (gameState === 'PLAYING') {
+        socket.emit('playerWon', roomCode, playerName, newClickCount, finalTime);
+      } else if (gameState === 'PLAYING_DAILY') {
+        const dailyPoints = calculateDailyScore(newClickCount, finalTime);
+        setDailyStats({ time: finalTime, clicks: newClickCount, points: dailyPoints });
+        // Instantly swap out the UI to the dedicated victory screen!
+        setGameState('GAMEOVER_DAILY');
+      }
     }
   };
 
   const sortedPlayers = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
 
-  if (gameState === 'LOBBY' || gameState === 'WAITING' || gameState === 'GAMEOVER') {
+  // --- RENDERING MENU / SCORE SCREENS ---
+  if (gameState === 'LOBBY' || gameState === 'WAITING' || gameState === 'GAMEOVER' || gameState === 'GAMEOVER_DAILY') {
     return (
       <div className="menu-wrapper fade-in">
         
         {gameState === 'LOBBY' && (
-          <div className="glass-card">
-            <h1 className="title">Wiki<span>Race</span></h1>
+          <div className="glass-card text-center" style={{ maxWidth: '600px', width: '90%' }}>
+            <h1 className="title" onClick={() => setGameState('LOBBY')} style={{ cursor: 'pointer' }}>
+              Wiki<span>Race</span>
+            </h1>
+            
+            <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '20px', borderRadius: '12px', marginBottom: '30px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+              <h3 style={{ color: '#93c5fd', margin: '0 0 10px 0' }}>🌟 Daily Challenge #{getDailyChallenge().dayNumber}</h3>
+              <p style={{ margin: '0 0 15px 0', fontSize: '1.1rem' }}>
+                <strong>{getDailyChallenge().pair.start.replace(/_/g, ' ')}</strong> ➡️ <strong>{getDailyChallenge().pair.target.replace(/_/g, ' ')}</strong>
+              </p>
+              <button onClick={startDailyMode} className="btn-success" style={{ width: '100%', padding: '12px', fontSize: '1.1rem' }}>
+                Play Daily Mode 🗓️
+              </button>
+            </div>
+
+            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', marginBottom: '25px' }} />
+
+            <h3 style={{ opacity: 0.8, marginBottom: '15px' }}>Or join a Multiplayer Lobby:</h3>
             {errorMsg && <div className="error-banner">{errorMsg}</div>}
             <form onSubmit={joinLobby} className="form-group">
               <input placeholder="Your Alias" value={playerName} onChange={(e) => setPlayerName(e.target.value)} required />
               <input placeholder="Room Code" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} required />
               <button type="submit" className="btn-primary">Join Match 🚀</button>
             </form>
+          </div>
+        )}
+
+        {/* --- NEW: DEDICATED DAILY COMPLETE SCREEN --- */}
+        {gameState === 'GAMEOVER_DAILY' && (
+          <div className="glass-card text-center" style={{ maxWidth: '600px', width: '90%', padding: '40px' }}>
+            <h1 className="winner-title" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🎉 Daily Complete!</h1>
+            
+            <h1 style={{ color: '#4ade80', margin: '20px 0', fontSize: '3.5rem', textShadow: '0 0 20px rgba(74, 222, 128, 0.4)' }}>
+              +{dailyStats?.points || 0} pts
+            </h1>
+
+            <div style={{ display: 'flex', justifyContent: 'space-around', margin: '30px 0', fontSize: '1.2rem', background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '15px' }}>
+              <div>
+                <span style={{color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Time</span>
+                ⏱️ {formatTime(dailyStats?.time || 0)}
+              </div>
+              <div>
+                <span style={{color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Clicks</span>
+                🖱️ {dailyStats?.clicks || 0}
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => generateShareText(
+                getDailyChallenge().dayNumber, 
+                dailyStats?.clicks || 0, 
+                formatTime(dailyStats?.time || 0), 
+                getDailyChallenge().pair.optimal,
+                dailyStats?.points || 0
+              )} 
+              className="btn-success" 
+              style={{ width: '100%', marginBottom: '15px', padding: '15px', fontSize: '1.2rem', fontWeight: 'bold' }}
+            >
+              📤 Share Results
+            </button>
+            <button 
+              onClick={() => {
+                setGameState('LOBBY');
+                setHasFinished(false);
+              }} 
+              className="btn-primary" 
+              style={{ width: '100%', padding: '15px', fontSize: '1.2rem' }}
+            >
+              🏠 Back to Main Menu
+            </button>
           </div>
         )}
 
@@ -337,20 +476,6 @@ function App() {
 
               <div className="player-list">
                 <h3>🏆 Match Leaderboard</h3>
-                {/* <ul>
-                  {sortedPlayers.map((p, index) => (
-                    <li key={p.id} className={p.id === roomHostId ? 'host-player' : ''}>
-                      <div className="player-info">
-                        <span className="rank">#{index + 1}</span>
-                        <span>{p.id === roomHostId ? '👑' : '🧑‍💻'} {p.name}</span>
-                        <span className="score-badge">{p.score || 0} pts</span>
-                      </div>
-                      {isHost && p.id !== socket.id && (
-                        <button onClick={() => kickPlayer(p.id)} className="btn-kick" title="Kick Player">❌</button>
-                      )}
-                    </li>
-                  ))}
-                </ul> */}
                 <ul>
                   {sortedPlayers.map((p, index) => (
                     <li key={p.id} className={`${p.id === roomHostId ? 'host-player' : ''} ${p.id === socket.id ? 'current-player' : ''}`}>
@@ -425,6 +550,7 @@ function App() {
         {gameState === 'GAMEOVER' && (
           <div className="glass-card text-center" style={{ maxWidth: '700px' }}>
             <h1 className="winner-title">🏁 Round Complete!</h1>
+            
             <ul className="round-results-list">
               {[...roundResults].sort((a,b) => (b.lastPoints || 0) - (a.lastPoints || 0)).map((p, i) => (
                 <li key={p.id} className={`${i === 0 && p.lastPoints > 0 ? 'first-place-result' : ''} ${p.id === socket.id ? 'current-player-result' : ''}`}>
@@ -468,7 +594,8 @@ function App() {
     );
   }
 
-  if (gameState === 'PLAYING') {
+  // --- RENDERING ACTIVE GAMEPLAY ---
+  if (gameState === 'PLAYING' || gameState === 'PLAYING_DAILY') {
     return (
       <div className="game-wrapper fade-in">
         
@@ -494,8 +621,27 @@ function App() {
             <button className="close-menu-btn" onClick={() => setIsMenuOpen(false)}>✕</button>
 
             <div className="sidebar-logo-container desktop-only">
-              <div className="sidebar-logo">
+              <div 
+                className="sidebar-logo" 
+                onClick={handleLogoClick}
+                style={{ cursor: 'pointer' }}
+                title="Return to Main Menu"
+              >
                 <h2>Wiki<span>Race</span></h2>
+                {gameState === 'PLAYING_DAILY' && (
+                  <span style={{
+                    color: '#4ade80', 
+                    fontSize: '0.85rem', 
+                    display: 'block', 
+                    textAlign: 'center', 
+                    marginTop: '8px', 
+                    letterSpacing: '2px', 
+                    textTransform: 'uppercase', 
+                    fontWeight: '800'
+                  }}>
+                    Daily Mode
+                  </span>
+                )}
               </div>
             </div>
             
@@ -521,30 +667,34 @@ function App() {
               🏳️ Give Up
             </button>
 
-            <div className="sidebar-section">
-              <h3>👥 Player Status</h3>
-              <ul className="mini-leaderboard">
-                {players.map((p) => (
-                  <li key={p.id} className={p.id === socket.id ? 'current-player-sidebar' : ''}>
-                    <span>
-                      {p.name} {p.id === socket.id && <span className="you-badge">(You)</span>}
-                    </span>
-                    <span className={`status-badge ${p.status}`}>
-                      {p.status === 'PLAYING' ? '🔍 Searching' :
-                       p.status === 'FINISHED' ? '🏁 Finished' :
-                       p.status === 'GAVE_UP' ? '🏳️ Gave Up' : '🔌 Lobby'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {gameState === 'PLAYING' && (
+              <>
+                <div className="sidebar-section">
+                  <h3>👥 Player Status</h3>
+                  <ul className="mini-leaderboard">
+                    {players.map((p) => (
+                      <li key={p.id} className={p.id === socket.id ? 'current-player-sidebar' : ''}>
+                        <span>
+                          {p.name} {p.id === socket.id && <span className="you-badge">(You)</span>}
+                        </span>
+                        <span className={`status-badge ${p.status}`}>
+                          {p.status === 'PLAYING' ? '🔍 Searching' :
+                          p.status === 'FINISHED' ? '🏁 Finished' :
+                          p.status === 'GAVE_UP' ? '🏳️ Gave Up' : '🔌 Lobby'}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-            {isHost && (
-              <div className="sidebar-section host-admin-section" style={{ marginTop: 'auto' }}>
-                <h3>👑 Host Controls</h3>
-                <button onClick={endMatch} className="btn-danger btn-small-action" style={{ width: '100%' }}>🛑 Force End</button>
-                <small style={{ display: 'block', marginTop: '5px', textAlign: 'center' }}>Use if a player goes AFK.</small>
-              </div>
+                {isHost && (
+                  <div className="sidebar-section host-admin-section" style={{ marginTop: 'auto' }}>
+                    <h3>👑 Host Controls</h3>
+                    <button onClick={endMatch} className="btn-danger btn-small-action" style={{ width: '100%' }}>🛑 Force End</button>
+                    <small style={{ display: 'block', marginTop: '5px', textAlign: 'center' }}>Use if a player goes AFK.</small>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </aside>
@@ -557,7 +707,8 @@ function App() {
             overflowY: hasFinished ? 'hidden' : 'auto'
           }}
         >
-          {hasFinished && (
+          {/* MULTIPLAYER OVERLAY */}
+          {hasFinished && gameState === 'PLAYING' && (
             <div className="finished-overlay">
               <div className="finished-card">
                 <h2>🏁 You're done!</h2>
@@ -630,9 +781,7 @@ function App() {
                 </svg>
               </a>
             </div>
-            
             <hr style={{ borderColor: 'var(--glass-border)', opacity: 0.5, margin: '15px 0' }} />
-            
             <a href="https://ko-fi.com/rovindsouza" target="_blank" rel="noopener noreferrer" className="kofi-button">
               ☕ Support on Ko-fi
             </a>
