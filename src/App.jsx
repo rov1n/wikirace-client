@@ -528,7 +528,7 @@ function App() {
               </a>
 
               {/* Telegram - Don't forget to drop your link in the href="#" below! */}
-              <a href="#" target="_blank" rel="noopener noreferrer" className="social-icon" title="Telegram">
+              <a href="https://t.me/RovinDsouza" target="_blank" rel="noopener noreferrer" className="social-icon" title="Telegram">
                 <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
                   <path d="M21.93 3.12l-19.7 7.6c-1.5.58-1.48 1.44-.27 1.81l5.05 1.58l11.68-7.36c.55-.33 1.05-.15.65.2l-9.46 8.53l-.33 4.9c.48 0 .69-.22.96-.48l2.3-2.24l4.78 3.53c.88.49 1.52.24 1.74-.8l3.16-14.88c.32-1.3-.48-1.89-1.56-1.39z"/>
                 </svg>
