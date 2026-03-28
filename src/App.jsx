@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+// This tells the app: "If there's a local variable, use it. Otherwise, use the live one."
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://wikirace-server.onrender.com';
 const socket = io(BACKEND_URL);
 
 const TimerDisplay = ({ startTime, hasFinished }) => {
