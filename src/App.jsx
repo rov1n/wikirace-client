@@ -26,6 +26,7 @@ function App() {
   const [errorMsg, setErrorMsg] = useState('');
   const [isHost, setIsHost] = useState(false);
   const [roomHostId, setRoomHostId] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const [startNode, setStartNode] = useState('Discord_(software)');
   const [targetNode, setTargetNode] = useState('Germany');
@@ -42,11 +43,11 @@ function App() {
   const [targetSuggestions, setTargetSuggestions] = useState([]);
   const [articleCache, setArticleCache] = useState({});
   const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isErrorPage, setIsErrorPage] = useState(false);
 
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef(null);
-  const contentRef = useRef(null);
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
@@ -59,12 +60,6 @@ function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
-  // NEW FIX: Auto-scroll to top the second a player finishes or gives up!
-  // useEffect(() => {
-  //   if (hasFinished && scrollContainerRef.current) {
-  //     scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-  //   }
-  // }, [hasFinished]);
   // Fix: Lock scroll and snap to top on mobile when game ends
   useEffect(() => {
     if (hasFinished) {
@@ -109,6 +104,7 @@ function App() {
       setClickCount(0);
       setPath([startNode]);
       setStartTime(Date.now());
+      setIsMenuOpen(false); // Close mobile menu if open
       fetchArticle(startNode);
     });
 
@@ -212,6 +208,7 @@ function App() {
   const giveUp = () => {
     socket.emit('playerGaveUp', roomCode, playerName);
     setHasFinished(true); 
+    setIsMenuOpen(false); // Close menu after giving up
   };
 
   const kickPlayer = (id) => socket.emit('kickPlayer', roomCode, id);
@@ -248,12 +245,30 @@ function App() {
       
       setArticleCache(prev => ({ ...prev, [title]: html }));
       setArticleHtml(html);
+      setIsErrorPage(false); // Success! Not an error page.
       scrollContainerRef.current?.scrollTo({ top: 0, left: 0 }); 
     } catch (error) {
-      setArticleHtml('<div class="error" style="color:#202122; padding:50px;">Error loading article. Try clicking back.</div>');
+      setIsErrorPage(true); // Trigger the Dead End state!
+      setArticleHtml(''); // Clear the HTML
     } finally {
       setIsPageLoading(false);
     }
+  };
+  const handleGoBack = () => {
+    // Cannot go back if at the start, loading, or finished
+    if (path.length <= 1 || isPageLoading || hasFinished) return;
+
+    const newPath = [...path];
+    newPath.pop(); // Remove the current page
+    const previousArticle = newPath[newPath.length - 1];
+
+    // Apply Penalty ONLY if it's not a Dead End
+    if (!isErrorPage) {
+      setClickCount(prev => prev + 1); 
+    }
+
+    setPath(newPath);
+    fetchArticle(previousArticle);
   };
 
   const handleWikiClick = (e) => {
@@ -425,59 +440,95 @@ function App() {
         {/* Left Sidebar */}
         <aside className="glass-sidebar left-sidebar" style={{ display: 'flex', flexDirection: 'column' }}>
           
-          <div className="sidebar-logo-container">
-            <div className="sidebar-logo">
-              <h2>Wiki<span>Race</span></h2>
+          {/* --- MOBILE TOP BAR (Hidden on Desktop) --- */}
+          <div className="mobile-header-bar">
+            <div className="header-stat">
+              <span className="stat-label">Target:</span>
+              <span className="stat-value target" style={{ fontSize: '0.9rem' }}>{targetNode.replace(/_/g, ' ')}</span>
             </div>
-            
-            <button onClick={giveUp} className="btn-warning btn-small-action" disabled={hasFinished}>
-              🏳️ Give Up
+            <div className="header-stat">
+              <span className="stat-label">Timer:</span>
+              <TimerDisplay startTime={startTime} hasFinished={hasFinished} />
+            </div>
+            <button className="hamburger-btn" onClick={() => setIsMenuOpen(true)}>
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+              </svg>
             </button>
           </div>
-          
-          <div className="sidebar-section">
-            <h3>⏱️ Timer</h3>
-            <TimerDisplay startTime={startTime} hasFinished={hasFinished} />
-          </div>
 
-          <div className="sidebar-section">
-            <h3>🎯 Target</h3>
-            <div className="target-display">{targetNode.replace(/_/g, ' ')}</div>
-          </div>
+          {/* --- DESKTOP SIDEBAR & MOBILE SLIDE-OUT MENU --- */}
+          <div className={`sidebar-content-wrapper ${isMenuOpen ? 'open' : ''}`}>
+            
+            {/* Close Button for Mobile Menu */}
+            <button className="close-menu-btn" onClick={() => setIsMenuOpen(false)}>✕</button>
 
-          <div className="sidebar-section">
-            <h3>👥 Player Status</h3>
-            <ul className="mini-leaderboard">
-              {players.map((p) => (
-                <li key={p.id}>
-                  <span>{p.name}</span>
-                  <span className={`status-badge ${p.status}`}>
-                    {p.status === 'PLAYING' ? '🔍 Searching' :
-                     p.status === 'FINISHED' ? '🏁 Finished' :
-                     p.status === 'GAVE_UP' ? '🏳️ Gave Up' : '🔌 Lobby'}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {isHost && (
-            <div className="sidebar-section host-admin-section">
-              <h3>👑 Host Controls</h3>
-              <button onClick={endMatch} className="btn-danger btn-small-action">🛑 Force End</button>
-              <small>Use only if a player goes AFK to un-stick the lobby.</small>
+            {/* Desktop Logo */}
+            <div className="sidebar-logo-container desktop-only">
+              <div className="sidebar-logo">
+                <h2>Wiki<span>Race</span></h2>
+              </div>
             </div>
-          )}
+            
+            {/* Desktop Timer & Target */}
+            <div className="sidebar-section desktop-only">
+              <h3>⏱️ Timer</h3>
+              <TimerDisplay startTime={startTime} hasFinished={hasFinished} />
+            </div>
+            <div className="sidebar-section desktop-only">
+              <h3>🎯 Target</h3>
+              <div className="target-display">{targetNode.replace(/_/g, ' ')}</div>
+            </div>
 
+            {/* --- CORE GAME BUTTONS & STATUS --- */}
+            
+            <button 
+              onClick={handleGoBack} 
+              className="btn-primary btn-small-action" 
+              disabled={hasFinished || path.length <= 1} 
+              style={{ width: '100%', marginBottom: '10px', backgroundColor: '#3b82f6' }}
+            >
+              ⬅️ Go Back {path.length > 1 && !isErrorPage ? '(Cost: +1 Click)' : ''}
+            </button>
+
+            <button onClick={giveUp} className="btn-warning btn-small-action" disabled={hasFinished} style={{ width: '100%', marginBottom: '15px' }}>
+              🏳️ Give Up
+            </button>
+
+            <div className="sidebar-section">
+              <h3>👥 Player Status</h3>
+              <ul className="mini-leaderboard">
+                {players.map((p) => (
+                  <li key={p.id}>
+                    <span>{p.name}</span>
+                    <span className={`status-badge ${p.status}`}>
+                      {p.status === 'PLAYING' ? '🔍 Searching' :
+                       p.status === 'FINISHED' ? '🏁 Finished' :
+                       p.status === 'GAVE_UP' ? '🏳️ Gave Up' : '🔌 Lobby'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {isHost && (
+              <div className="sidebar-section host-admin-section" style={{ marginTop: 'auto' }}>
+                <h3>👑 Host Controls</h3>
+                <button onClick={endMatch} className="btn-danger btn-small-action" style={{ width: '100%' }}>🛑 Force End</button>
+                <small style={{ display: 'block', marginTop: '5px', textAlign: 'center' }}>Use if a player goes AFK.</small>
+              </div>
+            )}
+
+          </div>
         </aside>
 
-        {/* Center Content - NEW: Dynamically lock overflow when finished */}
+        {/* Center Content */}
         <main 
           className="authentic-wiki-area" 
           ref={scrollContainerRef} 
           style={{ 
             position: 'relative',
-            overflowY: hasFinished ? 'hidden' : 'auto' /* 🛑 This locks the scrollbar! */
+            overflowY: hasFinished ? 'hidden' : 'auto'
           }}
         >
           
@@ -489,8 +540,22 @@ function App() {
               </div>
             </div>
           )}
+          {/* DEAD END SCREEN */}
+          {isErrorPage && !hasFinished && (
+            <div style={{ textAlign: 'center', padding: '60px 20px', marginTop: '20px' }}>
+              <h2 style={{ fontSize: '2.5rem', marginBottom: '15px' }}>🚫 Dead End!</h2>
+              <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>This Wikipedia link is broken or redirects outside the database.</p>
+              <div style={{ background: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', padding: '15px', borderRadius: '10px', display: 'inline-block', marginTop: '20px', marginBottom: '30px' }}>
+                <strong style={{ color: '#4ade80' }}>Good News:</strong> Going back from a Dead End is 100% FREE.
+              </div>
+              <br/>
+              <button onClick={handleGoBack} className="btn-primary" style={{ fontSize: '1.2rem', padding: '15px 30px' }}>
+                ⬅️ Go Back to Safety
+              </button>
+            </div>
+          )}
 
-          <div 
+          {/* <div 
             className="wiki-document"
             style={{ 
               filter: hasFinished ? 'blur(5px)' : 'none', 
@@ -506,10 +571,28 @@ function App() {
               onClick={handleWikiClick} 
               dangerouslySetInnerHTML={{ __html: articleHtml }} 
             />
-          </div>
+          </div> */}
+          {!isErrorPage && (
+            <div 
+              className="wiki-document"
+              style={{ 
+                filter: hasFinished ? 'blur(5px)' : 'none', 
+                opacity: isPageLoading ? 0.5 : 1,
+                pointerEvents: hasFinished || isPageLoading ? 'none' : 'auto',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <h1 className="article-title">{currentArticle.replace(/_/g, ' ')}</h1>
+              <hr className="title-divider"/>
+              <div 
+                className="wiki-content" 
+                onClick={handleWikiClick} 
+                dangerouslySetInnerHTML={{ __html: articleHtml }} 
+              />
+            </div>
+          )}
         </main>
 
-        {/* Right Sidebar */}
         {/* Right Sidebar */}
         <aside className="glass-sidebar right-sidebar">
           <div className="sidebar-section path-section">
@@ -524,9 +607,6 @@ function App() {
           </div>
 
           <div className="sidebar-section" style={{ padding: '25px 20px', textAlign: 'center', marginTop: 'auto', marginBottom: 0 }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              
-            </span>
             <div style={{ color: '#a5b4fc', fontSize: '1.2rem', marginTop: '5px', fontWeight: '800' }}>
               Socials
             </div>
@@ -539,7 +619,7 @@ function App() {
                 </svg>
               </a>
 
-              {/* Telegram - Don't forget to drop your link in the href="#" below! */}
+              {/* Telegram */}
               <a href="https://t.me/RovinDsouza" target="_blank" rel="noopener noreferrer" className="social-icon" title="Telegram">
                 <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
                   <path d="M21.93 3.12l-19.7 7.6c-1.5.58-1.48 1.44-.27 1.81l5.05 1.58l11.68-7.36c.55-.33 1.05-.15.65.2l-9.46 8.53l-.33 4.9c.48 0 .69-.22.96-.48l2.3-2.24l4.78 3.53c.88.49 1.52.24 1.74-.8l3.16-14.88c.32-1.3-.48-1.89-1.56-1.39z"/>
@@ -548,10 +628,6 @@ function App() {
             </div>
             
             <hr style={{ borderColor: 'var(--glass-border)', opacity: 0.5, margin: '15px 0' }} />
-            
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '12px' }}>
-              {/* Help keep the servers running! 🚀 */}
-            </span>
             
             <a href="https://ko-fi.com/rovindsouza" target="_blank" rel="noopener noreferrer" className="kofi-button">
               ☕ Support on Ko-fi
