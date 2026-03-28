@@ -391,23 +391,21 @@ function App() {
   if (gameState === 'LOBBY' || gameState === 'WAITING' || gameState === 'GAMEOVER' || gameState === 'GAMEOVER_DAILY') {
     return (
       <div className="menu-wrapper fade-in">
-        
         {gameState === 'LOBBY' && (
-          <div className="glass-card text-center" style={{ maxWidth: '600px', width: '90%' }}>
-            <h1 className="title" onClick={() => setGameState('LOBBY')} style={{ cursor: 'pointer' }}>
+          <div className="glass-card text-center" style={{ maxWidth: '460px', width: '90%', padding: '30px' }}>
+            <h1 className="title" onClick={handleLogoClick} style={{ cursor: 'pointer', marginBottom: '20px' }}>
               Wiki<span>Race</span>
             </h1>
             
-            <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '20px', borderRadius: '12px', marginBottom: '30px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-              <h3 style={{ color: '#93c5fd', margin: '0 0 15px 0' }}>🌟 Daily Challenge #{getDailyChallenge().dayNumber}</h3>
+            <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '15px', borderRadius: '12px', marginBottom: '25px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+              <h3 style={{ color: '#93c5fd', margin: '0 0 10px 0', fontSize: '1.1rem' }}>🌟 Daily Challenge #{getDailyChallenge().dayNumber}</h3>
               
-              {/* --- NEW: VERTICAL STACKED LAYOUT --- */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', margin: '0 0 20px 0', fontSize: '1.2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', margin: '0 0 15px 0', fontSize: '1rem' }}>
                 <strong style={{ textAlign: 'center', color: 'white' }}>
                   {getDailyChallenge().pair.start.replace(/_/g, ' ')}
                 </strong>
                 
-                <div style={{ background: 'rgba(59, 130, 246, 0.2)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                <div style={{ background: 'rgba(59, 130, 246, 0.2)', padding: '2px 10px', borderRadius: '20px', fontSize: '0.75rem', color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   ⬇️ To ⬇️
                 </div>
                 
@@ -416,39 +414,39 @@ function App() {
                 </strong>
               </div>
 
-              <button onClick={startDailyMode} className="btn-success" style={{ width: '100%', padding: '12px', fontSize: '1.1rem' }}>
+              <button onClick={startDailyMode} className="btn-success" style={{ width: '100%', padding: '10px', fontSize: '1rem' }}>
                 Play Daily Mode 🗓️
               </button>
             </div>
 
-            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', marginBottom: '25px' }} />
+            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', marginBottom: '20px' }} />
 
-            <h3 style={{ opacity: 0.8, marginBottom: '15px' }}>Or join a Multiplayer Lobby:</h3>
-            {errorMsg && <div className="error-banner">{errorMsg}</div>}
-            <form onSubmit={joinLobby} className="form-group">
-              <input placeholder="Your Alias" value={playerName} onChange={(e) => setPlayerName(e.target.value)} required />
-              <input placeholder="Room Code" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} required />
-              <button type="submit" className="btn-primary">Join Match 🚀</button>
+            <h3 style={{ opacity: 0.8, marginBottom: '10px', fontSize: '1rem' }}>Or join a Multiplayer Lobby:</h3>
+            {errorMsg && <div className="error-banner" style={{ fontSize: '0.9rem' }}>{errorMsg}</div>}
+            <form onSubmit={joinLobby} className="form-group" style={{ gap: '10px' }}>
+              <input placeholder="Your Alias" value={playerName} onChange={(e) => setPlayerName(e.target.value)} required style={{ padding: '10px', fontSize: '0.9rem' }} />
+              <input placeholder="Room Code" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} required style={{ padding: '10px', fontSize: '0.9rem' }} />
+              <button type="submit" className="btn-primary" style={{ padding: '10px', fontSize: '1rem', marginTop: '5px' }}>Join Match 🚀</button>
             </form>
           </div>
         )}
 
-        {/* --- NEW: DEDICATED DAILY COMPLETE SCREEN --- */}
+        {/* --- DEDICATED DAILY COMPLETE SCREEN --- */}
         {gameState === 'GAMEOVER_DAILY' && (
-          <div className="glass-card text-center" style={{ maxWidth: '600px', width: '90%', padding: '40px' }}>
-            <h1 className="winner-title" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🎉 Daily Complete!</h1>
+          <div className="glass-card text-center" style={{ maxWidth: '460px', width: '90%', padding: '30px' }}>
+            <h1 className="winner-title" style={{ fontSize: '2rem', marginBottom: '5px' }}>🎉 Daily Complete!</h1>
             
-            <h1 style={{ color: '#4ade80', margin: '20px 0', fontSize: '3.5rem', textShadow: '0 0 20px rgba(74, 222, 128, 0.4)' }}>
+            <h1 style={{ color: '#4ade80', margin: '15px 0', fontSize: '3rem', textShadow: '0 0 20px rgba(74, 222, 128, 0.4)' }}>
               +{dailyStats?.points || 0} pts
             </h1>
 
-            <div style={{ display: 'flex', justifyContent: 'space-around', margin: '30px 0', fontSize: '1.2rem', background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '15px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', margin: '20px 0', fontSize: '1.1rem', background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '15px' }}>
               <div>
-                <span style={{color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Time</span>
+                <span style={{color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Time</span>
                 ⏱️ {formatTime(dailyStats?.time || 0)}
               </div>
               <div>
-                <span style={{color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Clicks</span>
+                <span style={{color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Clicks</span>
                 🖱️ {dailyStats?.clicks || 0}
               </div>
             </div>
@@ -462,7 +460,7 @@ function App() {
                 dailyStats?.points || 0
               )} 
               className="btn-success" 
-              style={{ width: '100%', marginBottom: '15px', padding: '15px', fontSize: '1.2rem', fontWeight: 'bold' }}
+              style={{ width: '100%', marginBottom: '10px', padding: '12px', fontSize: '1.1rem', fontWeight: 'bold' }}
             >
               📤 Share Results
             </button>
@@ -472,7 +470,7 @@ function App() {
                 setHasFinished(false);
               }} 
               className="btn-primary" 
-              style={{ width: '100%', padding: '15px', fontSize: '1.2rem' }}
+              style={{ width: '100%', padding: '12px', fontSize: '1rem' }}
             >
               🏠 Back to Main Menu
             </button>
@@ -561,7 +559,7 @@ function App() {
         )}
 
         {gameState === 'GAMEOVER' && (
-          <div className="glass-card text-center" style={{ maxWidth: '700px' }}>
+          <div className="glass-card text-center" style={{ maxWidth: '500px', width: '90%' }}>
             <h1 className="winner-title">🏁 Round Complete!</h1>
             
             <ul className="round-results-list">
