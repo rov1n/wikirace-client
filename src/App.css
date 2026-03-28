@@ -177,12 +177,99 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 .wiki-content table { border-collapse: collapse; margin: 1em 0; width: 100%; display: block; overflow-x: auto; white-space: normal; }
 .wiki-content th, .wiki-content td { border: 1px solid #a2a9b1; padding: 0.5em; }
 
+/* --- ULTIMATE MOBILE OVERHAUL --- */
 @media (max-width: 900px) {
-  .game-wrapper { grid-template-columns: 1fr; height: auto; overflow: visible; }
-  .glass-sidebar { height: auto; position: relative; border: none; box-shadow: none; border-bottom: 1px solid var(--glass-border); }
-  .right-sidebar { border-top: 1px solid var(--glass-border); }
-  .authentic-wiki-area { padding: 0px; height: auto; overflow-y: visible; }
-  .wiki-document { padding: 25px 15px; }
+  
+  /* 1. Stack the layout vertically */
+  .game-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  /* 2. Turn Left Sidebar into a Sticky Top Bar */
+  .left-sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: auto;
+    z-index: 1000;
+    padding: 10px 15px;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(15px);
+  }
+
+  /* Hide elements that eat too much space on mobile header */
+  .sidebar-logo, .host-admin-section, .mini-leaderboard {
+    display: none;
+  }
+
+  /* Compact Timer and Target for the header */
+  .sidebar-section {
+    margin: 0;
+    padding: 0;
+    text-align: left;
+  }
+
+  .sidebar-section h3 { font-size: 0.6rem; margin: 0; }
+  .timer-display { font-size: 1.2rem; }
+  .target-display { font-size: 0.9rem; }
+
+  /* 3. Give Wikipedia the full width */
+  .authentic-wiki-area {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+  }
+
+  .wiki-document {
+    padding: 15px;
+    font-size: 16px; /* Slightly larger text for mobile readability */
+    line-height: 1.6;
+  }
+
+  /* Make links easier to tap with thumbs */
+  .wiki-document a {
+    padding: 2px 0;
+    display: inline-block;
+  }
+
+  /* 4. Push Right Sidebar (Path/Socials) to the bottom */
+  .right-sidebar {
+    width: 100%;
+    height: auto;
+    border-left: none;
+    border-top: 1px solid var(--glass-border);
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  /* 5. FIX THE OVERLAY: Always centered on the viewport */
+  .finished-overlay {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .finished-card {
+    width: 85%;
+    max-width: 320px;
+    transform: none; /* Reset any desktop offsets */
+  }
 }
 /* --- Social Links (Developed By) --- */
 .social-links-container {

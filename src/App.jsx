@@ -60,10 +60,21 @@ function App() {
   }, [chatMessages]);
 
   // NEW FIX: Auto-scroll to top the second a player finishes or gives up!
+  // useEffect(() => {
+  //   if (hasFinished && scrollContainerRef.current) {
+  //     scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+  //   }
+  // }, [hasFinished]);
+  // Fix: Lock scroll and snap to top on mobile when game ends
   useEffect(() => {
-    if (hasFinished && scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    if (hasFinished) {
+      window.scrollTo(0, 0); 
+      document.body.style.overflow = 'hidden'; 
+    } else {
+      document.body.style.overflow = 'auto';
     }
+    // Cleanup on unmount
+    return () => { document.body.style.overflow = 'auto'; };
   }, [hasFinished]);
 
   useEffect(() => {
