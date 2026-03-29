@@ -221,41 +221,66 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     min-height: 300px; 
   }
 
-  /* --- GAME OVER SCREEN MOBILE FIX --- */
+  /* --- REVERT TO CLEAN ONE-LINE STATS --- */
   .round-results-list li {
     display: flex !important;
     flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 12px !important;
-    padding: 16px !important;
+    padding: 12px 16px !important; /* Tightened padding */
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .result-name-group {
     width: 100% !important;
     display: flex !important;
+    justify-content: flex-start !important;
     align-items: center !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    padding-bottom: 12px !important;
+    margin-bottom: 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding-bottom: 8px !important;
   }
 
   .result-stats {
     width: 100% !important;
     display: flex !important;
     flex-direction: row !important;
-    justify-content: space-between !important;
+    justify-content: space-between !important; /* Spreads them across one line */
     align-items: center !important;
-    margin: 0 !important;
+    gap: 4px !important;
   }
 
   .result-stats span {
-    font-size: 0.85rem !important; 
+    font-size: 0.85rem !important; /* Back to original size */
     white-space: nowrap !important;
   }
 
   .result-points {
-    font-size: 1.1rem !important; 
+    font-size: 1rem !important; 
     font-weight: 800 !important;
+    color: #4ade80 !important;
+    /* This ensures it stays pinned to the right even on tiny screens */
+    margin-left: auto !important; 
   }
+
+  /* Shrink the button height to make it less bulky */
+  .btn-primary.mt-4 {
+    margin-top: 20px !important;
+    padding: 12px 20px !important;
+    font-size: 1rem !important;
+    width: auto !important; /* Stops it from being a giant block if not needed */
+    min-width: 200px !important;
+    align-self: center !important;
+  }
+
+  /* Ensure the name group doesn't push the card width */
+  .result-name-group {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+
   .game-wrapper {
     display: flex !important;
     flex-direction: column !important;
@@ -470,4 +495,47 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
   color: #a5b4fc; /* Turns purple on hover */
   transform: translateY(-4px) scale(1.15); /* Pops up and grows slightly */
   filter: drop-shadow(0 4px 10px rgba(165, 180, 252, 0.4)); /* Adds a glowing shadow */
+}
+
+/* --- HAMBURGER ANIMATION & TAP FIX --- */
+.hamburger {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* KILLS THE UGLY BLUE FLASH! */
+}
+
+.hamburger input {
+  display: none;
+}
+
+.hamburger svg {
+  height: 2.5em; /* Adjusted to fit your header nicely */
+  transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.line {
+  fill: none;
+  stroke: white;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+  transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
+              stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.line-top-bottom {
+  stroke-dasharray: 12 63;
+}
+
+.hamburger input:checked + svg {
+  transform: rotate(-45deg);
+}
+
+.hamburger input:checked + svg .line-top-bottom {
+  stroke-dasharray: 20 300;
+  stroke-dashoffset: -32.42;
+}
+
+/* Ensure close buttons don't flash blue either */
+.close-menu-btn, button {
+  -webkit-tap-highlight-color: transparent;
 }

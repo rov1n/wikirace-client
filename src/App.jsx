@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 import { getDailyChallenge } from './dailyPairs';
+import { Toaster, toast } from 'sonner';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://wikirace-server.onrender.com';
 const socket = io(BACKEND_URL);
@@ -95,6 +96,22 @@ function App() {
       setChatMessages(prev => [...prev, msg]);
     });
 
+
+    // new socket code
+    socket.on('connect_error', () => {
+      // Adding an id prevents multiple error toasts from stacking
+      toast.error("⚠️ Connection lost. Trying to reconnect...", {
+        id: 'connection-error'
+      });
+    });
+
+    socket.on('connect', () => {
+      // This will dismiss the error toast once the server is back
+      toast.dismiss('connection-error');
+      console.log("Connected to server!");
+    });
+    // end of new socket code
+
     socket.on('kicked', () => {
       setGameState('LOBBY');
       setErrorMsg('You were kicked from the room by the host.');
@@ -173,25 +190,93 @@ function App() {
     if (clicks > optimalClicks + 5) ratingEmoji = '🟥'; 
 
     let pathBlocks = '';
-    for (let i = 0; i < clicks - 1; i++) {
-        if (i < 8) pathBlocks += '🟦'; 
+    const visualClicks = Math.min(clicks - 1, 8); 
+    for (let i = 0; i < visualClicks; i++) {
+        pathBlocks += '🟦'; 
     }
     pathBlocks += ratingEmoji; 
 
-    const shareString = `WikiRace Daily #${dayNumber}\n🏆 ${points} pts\n⏱️ ${timeStr} | 🖱️ ${clicks} Clicks\n${pathBlocks}\n\nCan you beat me? Play at: rovin.vercel.app`;
-    navigator.clipboard.writeText(shareString);
-    alert('Results copied to clipboard! Paste it to your friends.');
+    const shareString = `WikiRace Daily #${dayNumber}\n🏆 ${points} pts\n⏱️ ${timeStr} | 🖱️ ${clicks} Clicks\n${pathBlocks}\n\nPlay at: wikirace.com`;
+
+    // Wrap the sharing logic in a Promise for the Sonner Toast
+    const shareAction = new Promise(async (resolve, reject) => {
+      // 1. Try Native Share API First
+      if (navigator.share && navigator.canShare && navigator.canShare({ text: shareString })) {
+        try {
+          await navigator.share({
+            title: `WikiRace Daily #${dayNumber}`,
+            text: shareString,
+          });
+          resolve('Shared successfully!'); 
+        } catch (err) {
+          // If the user just swipes away the share sheet, don't throw an angry error
+          if (err.name === 'AbortError') {
+            resolve('Share cancelled.'); 
+          } else {
+            console.error('Share failed:', err);
+            reject('Something went wrong.');
+          }
+        }
+        return;
+      }
+
+      // 2. Try Modern Clipboard Fallback
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(shareString);
+          resolve('Copied to clipboard! Share with friends.');
+          return;
+        } catch (clipErr) {
+          console.error('Modern clipboard failed:', clipErr);
+        }
+      }
+
+      // 3. The Legacy Fallback
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = shareString;
+        textArea.style.position = "absolute";
+        textArea.style.left = "-999999px";
+        document.body.prepend(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+        resolve('Copied to clipboard! Share with friends.');
+      } catch (legacyErr) {
+        console.error('Legacy copy failed:', legacyErr);
+        reject('Could not copy results.');
+      }
+    });
+
+    // Fire the Shadcn/Sonner Promise Toast!
+    toast.promise(shareAction, {
+      loading: 'Preparing results...',
+      success: (data) => data, // Uses the resolve() messages from above
+      error: (err) => err,     // Uses the reject() messages from above
+    });
   };
 
+  // --- LOBBY & GAME CONTROL FUNCTIONS ---
   const joinLobby = (e) => {
     e.preventDefault();
     if (roomCode && playerName) {
+      const timeout = setTimeout(() => {
+        // Unique ID ensures only one "unreachable" toast appears
+        toast.error("🔌 Server is unreachable. Please try again later.", {
+          id: 'join-timeout'
+        });
+      }, 5000);
+
       socket.emit('joinRoom', roomCode, playerName, (response) => {
+        clearTimeout(timeout);
+        toast.dismiss('join-timeout'); // Dismiss any existing timeout warning
+
         if (response.success) {
           setGameState('WAITING');
           setErrorMsg('');
         } else {
           setErrorMsg(response.message);
+          toast.error(response.message, { id: 'lobby-error' });
         }
       });
     }
@@ -311,10 +396,42 @@ function App() {
     }
   };
 
-  const copyInviteLink = () => {
+  const copyInviteLink = async () => {
     const link = `${window.location.origin}?room=${roomCode}`;
-    navigator.clipboard.writeText(link);
-    alert('Invite link copied to clipboard!');
+    
+    // 1. Try Modern Clipboard API (Requires HTTPS)
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(link);
+        toast.success('🔗 Invite link copied!', { id: 'invite-success' });
+        return;
+      } catch (err) {
+        console.error('Modern clipboard failed:', err);
+      }
+    }
+
+    // 2. Legacy Fallback (Works on local HTTP networks like 192.168.x.x)
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      textArea.style.position = "absolute";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        toast.success('🔗 Invite link copied!', { id: 'invite-success' });
+      } else {
+        throw new Error('Copy command failed');
+      }
+    } catch (err) {
+      console.error('Legacy copy failed:', err);
+      toast.error('❌ Could not copy link automatically.');
+    }
   };
 
   const fetchArticle = async (title) => {
@@ -621,11 +738,17 @@ function App() {
               <span className="stat-label">Timer:</span>
               <TimerDisplay startTime={startTime} hasFinished={hasFinished} />
             </div>
-            <button className="hamburger-btn" onClick={() => setIsMenuOpen(true)}>
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
-                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+            <label className="hamburger">
+              <input 
+                type="checkbox" 
+                checked={isMenuOpen} 
+                onChange={(e) => setIsMenuOpen(e.target.checked)} 
+              />
+              <svg viewBox="0 0 32 32">
+                <path className="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+                <path className="line" d="M7 16 27 16"></path>
               </svg>
-            </button>
+            </label>
           </div>
 
           <div className={`sidebar-content-wrapper ${isMenuOpen ? 'open' : ''}`}>
@@ -802,6 +925,18 @@ function App() {
       </div>
     );
   }
+  // --- ADD THIS RIGHT HERE ---
+  // If no game states match, render nothing (fallback)
+  return null;
 }
-
-export default App;
+// Wrap the main App in a higher-order component to inject the Toaster globally!
+export default function AppWrapper() {
+  return (
+    <>
+      <App />
+      {/* gap={0} and maxToasts={1} can also help if you want 
+          an extremely strict single-toast UI */}
+      <Toaster position="bottom-center" richColors theme="dark" closeButton />
+    </>
+  );
+}
