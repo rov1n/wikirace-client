@@ -196,12 +196,16 @@ function App() {
     }
     pathBlocks += ratingEmoji; 
 
-    const shareString = `WikiRace Daily #${dayNumber}\n🏆 ${points} pts\n⏱️ ${timeStr} | 🖱️ ${clicks} Clicks\n${pathBlocks}\n\nPlay at: wikirace.com`;
+    // Updated the URL to point to your live site!
+    const shareString = `WikiRace Daily #${dayNumber}\n🏆 ${points} pts\n⏱️ ${timeStr} | 🖱️ ${clicks} Clicks\n${pathBlocks}\n\nPlay at: https://rovin.vercel.app`;
 
-    // Wrap the sharing logic in a Promise for the Sonner Toast
     const shareAction = new Promise(async (resolve, reject) => {
-      // 1. Try Native Share API First
-      if (navigator.share && navigator.canShare && navigator.canShare({ text: shareString })) {
+      
+      // Quick check to see if the user is on a mobile device
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      // 1. Try Native Share API (ONLY IF ON MOBILE)
+      if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ text: shareString })) {
         try {
           await navigator.share({
             title: `WikiRace Daily #${dayNumber}`,
@@ -209,7 +213,6 @@ function App() {
           });
           resolve('Shared successfully!'); 
         } catch (err) {
-          // If the user just swipes away the share sheet, don't throw an angry error
           if (err.name === 'AbortError') {
             resolve('Share cancelled.'); 
           } else {
@@ -217,10 +220,10 @@ function App() {
             reject('Something went wrong.');
           }
         }
-        return;
+        return; // Stop here if native share was triggered
       }
 
-      // 2. Try Modern Clipboard Fallback
+      // 2. Try Modern Clipboard Fallback (For Windows/Mac/Linux)
       if (navigator.clipboard && window.isSecureContext) {
         try {
           await navigator.clipboard.writeText(shareString);
@@ -231,7 +234,7 @@ function App() {
         }
       }
 
-      // 3. The Legacy Fallback
+      // 3. The Legacy Fallback (For Local Network Testing)
       try {
         const textArea = document.createElement("textarea");
         textArea.value = shareString;
@@ -248,11 +251,10 @@ function App() {
       }
     });
 
-    // Fire the Shadcn/Sonner Promise Toast!
     toast.promise(shareAction, {
       loading: 'Preparing results...',
-      success: (data) => data, // Uses the resolve() messages from above
-      error: (err) => err,     // Uses the reject() messages from above
+      success: (data) => data, 
+      error: (err) => err,     
     });
   };
 
@@ -355,35 +357,62 @@ function App() {
   };
 
   const giveUp = () => {
-    setHasFinished(true); 
-    setIsMenuOpen(false); 
-    if (gameState === 'PLAYING') {
-      socket.emit('playerGaveUp', roomCode, playerName);
-    } else if (gameState === 'PLAYING_DAILY') {
-      setDailyStats({ 
-        time: Math.floor((Date.now() - startTime) / 1000), 
-        clicks: clickCount, 
-        points: 0 
-      });
-      // Immediately swap to the dedicated game over screen!
-      setGameState('GAMEOVER_DAILY');
-    }
+    toast.warning('Are you sure you want to give up?', {
+      id: 'quit-warning', 
+      duration: Infinity,
+      action: {
+        label: 'Give Up',
+        onClick: () => {
+          setIsMenuOpen(false); 
+          
+          if (gameState === 'PLAYING') {
+            setHasFinished(true); // Blurs screen while waiting for other players
+            socket.emit('playerGaveUp', roomCode, playerName);
+          } else if (gameState === 'PLAYING_DAILY') {
+            setHasFinished(false); // Don't blur, just instantly swap screens
+            setDailyStats({ 
+              time: Math.floor((Date.now() - startTime) / 1000), 
+              clicks: clickCount, 
+              points: 0 
+            });
+            // Safely swap to the game over screen!
+            setGameState('GAMEOVER_DAILY');
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => toast.dismiss('quit-warning'),
+      },
+    });
   };
+
   const handleLogoClick = () => {
-    if (gameState === 'PLAYING') {
-      if (window.confirm("Return to main menu? This counts as giving up!")) {
-        socket.emit('playerGaveUp', roomCode, playerName);
-        setHasFinished(false);
-        setGameState('LOBBY');
-      }
-    } else if (gameState === 'PLAYING_DAILY') {
-      if (window.confirm("End your daily run and return to the menu?")) {
-        setHasFinished(false);
-        setGameState('LOBBY');
-      }
-    } else {
+    if (gameState !== 'PLAYING' && gameState !== 'PLAYING_DAILY') {
       setGameState('LOBBY');
+      return;
     }
+
+    toast('Quit current game?', {
+      id: 'quit-warning', // <-- THIS PREVENTS STACKING
+      description: 'Your progress will be lost.',
+      duration: Infinity,
+      action: {
+        label: 'Quit',
+        onClick: () => {
+          if (gameState === 'PLAYING') {
+            socket.emit('playerGaveUp', roomCode, playerName);
+          }
+          setHasFinished(false);
+          setGameState('LOBBY');
+          setIsMenuOpen(false);
+        },
+      },
+      cancel: {
+        label: 'Stay',
+        onClick: () => toast.dismiss('quit-warning'),
+      },
+    });
   };
 
   const kickPlayer = (id) => socket.emit('kickPlayer', roomCode, id);
@@ -754,7 +783,8 @@ function App() {
           <div className={`sidebar-content-wrapper ${isMenuOpen ? 'open' : ''}`}>
             <button className="close-menu-btn" onClick={() => setIsMenuOpen(false)}>✕</button>
 
-            <div className="sidebar-logo-container desktop-only">
+            {/* <div className="sidebar-logo-container desktop-only"> */}
+            <div className="sidebar-logo-container">
               <div 
                 className="sidebar-logo" 
                 onClick={handleLogoClick}

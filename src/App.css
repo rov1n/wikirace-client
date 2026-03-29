@@ -539,3 +539,35 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 .close-menu-btn, button {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* --- SONNER TOAST POLISH & FONT FIX --- */
+[data-sonner-toast] {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+[data-sonner-toast] [data-title] {
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+}
+
+[data-sonner-toast] [data-description] {
+  font-size: 0.85rem !important;
+}
+
+[data-sonner-toast] [data-button], [data-sonner-toast] [data-cancel] {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  font-weight: 800 !important;
+}
+
+[data-sonner-toast] [data-button] {
+  background: var(--danger) !important;
+  color: white !important;
+}
+
+[data-sonner-toast] [data-cancel] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border: 1px solid var(--glass-border) !important;
+}
