@@ -78,7 +78,7 @@ export const getDailyChallenge = () => {
   const today = new Date();
   
   // The day your game officially "Launches" Daily Mode
-  const startDate = new Date('2026-03-30'); 
+  const startDate = new Date('2026-03-29'); 
   
   // Calculate days passed since the start date (ignoring time zones/hours)
   const diffTime = today.getTime() - startDate.getTime();
