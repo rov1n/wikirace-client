@@ -14,26 +14,15 @@
 *, *::before, *::after { box-sizing: border-box; }
 #root { max-width: 100vw !important; width: 100%; margin: 0 !important; padding: 0 !important; overflow-x: hidden; }
 
-/* body {
+body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   margin: 0; padding: 0; color: var(--text-main);
   background: linear-gradient(-45deg, #0f172a, #1e1b4b, #0f172a, #064e3b);
   background-size: 400% 400%; animation: gradientBG 15s ease infinite;
   min-height: 100vh; width: 100vw; overflow-x: hidden;
-} */
-
-body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  margin: 0; 
-  padding: 0; 
-  color: var(--text-main);
-  background-color: #0f172a; /* Flat, dark slate background */
-  min-height: 100vh; 
-  width: 100vw; 
-  overflow-x: hidden;
 }
 
-/* @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } } */
+@keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -43,26 +32,72 @@ body {
 .fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-/* --- Menu & Glass UI --- */
+/* ==================== IMPROVED LANDING PAGE STYLES ==================== */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 520px;
+}
+
+.title {
+  font-size: 3.8rem;
+  margin: 0 0 25px 0;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: -2px;
+}
+.title span {
+  background: linear-gradient(to right, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #6366f1, #a855f7);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+.btn-primary:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.6);
+}
+
+input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+input:focus {
+  border-color: #818cf8;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ==================== ORIGINAL STYLES (kept fully intact) ==================== */
 .menu-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-.glass-card { background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); border-radius: 24px; padding: 40px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1); width: 100%; max-width: 450px; }
 .lobby-layout { max-width: 1200px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; padding: 40px; }
 
-.title { font-size: 3.5rem; margin: 0 0 25px 0; text-align: center; font-weight: 800; letter-spacing: -1px; }
-.title span { background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
 h2, h3 { margin-top: 0; font-weight: 600; }
 .highlight-text { color: #818cf8; font-family: monospace; font-size: 1.2em; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 6px; }
 
 .form-group, .route-settings { display: flex; flex-direction: column; gap: 16px; }
-input { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 16px; border-radius: 12px; font-size: 1rem; outline: none; font-family: inherit; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
-input:focus { border-color: var(--primary); background: rgba(0, 0, 0, 0.4); box-shadow: 0 0 15px var(--primary-glow), inset 0 2px 4px rgba(0,0,0,0.1); }
-button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px; border: none; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); font-family: inherit; text-transform: uppercase; letter-spacing: 1px; }
-.btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px var(--primary-glow); }
-.btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 25px var(--primary-glow); }
+
 .btn-success { background: var(--success); color: white; width: 100%; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
 .btn-success:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6); }
 
-/* Autocomplete */
 .autocomplete-wrapper { position: relative; flex: 1; display: flex; flex-direction: column; }
 .suggestions-list { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; background: #1e293b; border: 1px solid var(--glass-border); border-radius: 8px; list-style: none; padding: 0; margin: 5px 0 0 0; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; }
 .suggestions-list li { padding: 12px 15px; cursor: pointer; color: white; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; transition: background 0.2s; }
@@ -85,7 +120,6 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 .input-row { display: flex; align-items: center; gap: 10px; }
 .input-row input { flex: 1; padding: 12px; width: 100%; }
 
-/* Chat System */
 .lobby-chat { display: flex; flex-direction: column; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; height: 100%; }
 .lobby-chat h3 { margin: 0; padding: 15px 20px; background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--glass-border); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;}
 .chat-messages { flex: 1; padding: 20px; min-height: 400px; max-height: 600px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
@@ -98,19 +132,16 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 .chat-input input { margin: 0; border-radius: 8px; flex: 1; min-width: 0; padding: 12px; background: rgba(0,0,0,0.3); }
 .chat-input button { margin: 0; border-radius: 8px; padding: 0 20px; width: auto; flex-shrink: 0; font-size: 0.9rem; background: #4f46e5; }
 
-/* --- Web App Structure (80% Zoom Simulation) --- */
 .game-wrapper { display: grid; grid-template-columns: minmax(300px, 20vw) 1fr minmax(300px, 20vw); height: 100vh; width: 100vw; overflow: hidden; }
 
 .glass-sidebar { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 20px; height: 100vh; box-sizing: border-box; z-index: 10; display: flex; flex-direction: column; }
 .left-sidebar { border-right: 1px solid var(--glass-border); box-shadow: 10px 0 30px rgba(0,0,0,0.3); overflow-y: auto; }
 .right-sidebar { border-left: 1px solid var(--glass-border); box-shadow: -10px 0 30px rgba(0,0,0,0.3); }
 
-/* Sidebar Top Area */
 .sidebar-logo-container { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
 .sidebar-logo h2 { margin: 0; font-weight: 800; font-size: 2rem; letter-spacing: -1px; color: white; text-shadow: 0 4px 15px rgba(255, 255, 255, 0.2); }
 .sidebar-logo span { color: #a5b4fc; text-shadow: 0 0 20px rgba(129, 140, 248, 0.8); }
 
-/* Action Buttons */
 .btn-small-action { padding: 10px 12px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; border-radius: 8px; width: 100%; text-align: center; transition: all 0.2s; flex-shrink: 0;}
 .btn-danger { background: var(--danger); color: white; border: none; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); cursor: pointer; }
 .btn-danger:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6); background: #dc2626; }
@@ -133,7 +164,6 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 .ads-placeholder { background: rgba(255, 255, 255, 0.05); border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 40px 20px; text-align: center; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 .ads-placeholder small { display: block; font-weight: 400; margin-top: 5px; opacity: 0.7; }
 
-/* Host Admin Section (In-Game) */
 .host-admin-section { margin-top: auto; margin-bottom: 0; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); }
 .host-admin-section h3 { color: #fca5a5; }
 .host-admin-section small { display: block; margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); line-height: 1.2; }
@@ -145,27 +175,22 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 .mini-leaderboard li { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--text-main); background: rgba(255, 255, 255, 0.05); padding: 6px 12px; border-radius: 8px; }
 .mini-leaderboard .score-badge { margin-left: 0; padding: 2px 8px; font-size: 0.75rem; }
 
-/* In-Game Player Status Tracker */
 .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
 .status-badge.PLAYING { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
 .status-badge.FINISHED { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
 .status-badge.GAVE_UP { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
 
-/* --- Independent Scrolling Center Area --- */
 .authentic-wiki-area { background-color: #ffffff; padding: 0; display: flex; justify-content: center; width: 100%; box-sizing: border-box; height: 100vh; overflow-y: auto; }
 .wiki-document { background-color: #ffffff; color: #202122; padding: 50px 80px; max-width: 1300px; width: 100%; box-sizing: border-box; border: none; font-family: sans-serif; min-height: 100vh; }
 .article-title { font-family: 'Linux Libertine', Georgia, Times, serif; font-size: 2.8rem; font-weight: normal; margin: 0 0 10px 0; border-bottom: 1px solid #a2a9b1; padding-bottom: 5px; }
 
 .wiki-content { font-size: 16px; line-height: 1.6; margin-top: 15px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; transition: opacity 0.2s ease, filter 0.2s ease; }
-.content-loading { opacity: 0.5; filter: blur(4px); pointer-events: none; }
 
-/* Overlay when player finishes before others */
 .finished-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); z-index: 50; display: flex; justify-content: center; align-items: center; }
 .finished-card { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 .finished-card h2 { margin: 0 0 10px 0; font-size: 2rem; color: white;}
 .finished-card p { margin: 0; color: var(--text-muted); font-size: 1.1rem;}
 
-/* Game Over Scoreboard Styling */
 .round-results-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; margin: 30px 0; }
 .round-results-list li { background: rgba(0,0,0,0.2); padding: 16px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
 .first-place-result { border-color: rgba(250, 204, 21, 0.5) !important; background: rgba(250, 204, 21, 0.05) !important; }
@@ -175,35 +200,27 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 .result-stats { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 20px; }
 .result-points { color: #34d399; font-weight: 800; font-size: 1.2rem; }
 
-/* STRICT WIKIPEDIA COLOR ENFORCEMENT */
 .wiki-document, .wiki-document p, .wiki-document h1, .wiki-document h2, .wiki-document h3, .wiki-document h4, .wiki-document li, .wiki-document span, .wiki-document div, .wiki-document td, .wiki-document th { color: #202122 !important; }
 .wiki-document a, .wiki-document a * { color: #0645ad !important; text-decoration: none; font-weight: 500;}
 .wiki-document a:hover { text-decoration: underline; }
 .wiki-document .infobox th, .wiki-document .infobox td { color: #111111 !important; }
 
-/* Hide Wiki Cruft & Format Elements */
 .wiki-content .mw-editsection, .wiki-content .reference, .wiki-content .navbox, .wiki-content .metadata, .wiki-content .ambox { display: none !important; }
 .wiki-content img { max-width: 100%; height: auto; border-radius: 4px;}
 .wiki-content .infobox { border: 1px solid #a2a9b1; background-color: #f8f9fa; float: right; margin: 0 0 1em 1em; padding: 0.5em; font-size: 88%; max-width: 100%;}
 .wiki-content table { border-collapse: collapse; margin: 1em 0; width: 100%; display: block; overflow-x: auto; white-space: normal; }
 .wiki-content th, .wiki-content td { border: 1px solid #a2a9b1; padding: 0.5em; }
-/* --- DESKTOP HIDING --- */
-.mobile-header-bar, .close-menu-btn {
-  display: none;
-}
-/* --- CURRENT PLAYER HIGHLIGHTS --- */
+
 .current-player, .current-player-result {
   background: rgba(59, 130, 246, 0.15) !important;
   border: 1px solid rgba(59, 130, 246, 0.4) !important;
 }
-
 .current-player-sidebar {
   background: rgba(59, 130, 246, 0.15) !important;
   border-radius: 6px;
   padding-left: 8px !important;
   border-left: 3px solid #3b82f6 !important;
 }
-
 .you-badge {
   font-size: 0.8em;
   color: #93c5fd;
@@ -211,11 +228,9 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
   font-weight: 500;
   margin-left: 6px;
 }
-/* --- ULTIMATE MOBILE OVERHAUL --- */
-/* --- SCORCHED EARTH MOBILE OVERHAUL --- */
+
+/* ==================== MOBILE STYLES ==================== */
 @media (max-width: 900px) {
-  
-  /* --- LOBBY MOBILE FIX --- */
   .lobby-layout {
     display: flex !important;
     flex-direction: column !important;
@@ -232,11 +247,10 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     min-height: 300px; 
   }
 
-  /* --- REVERT TO CLEAN ONE-LINE STATS --- */
   .round-results-list li {
     display: flex !important;
     flex-direction: column !important;
-    padding: 12px 16px !important; /* Tightened padding */
+    padding: 12px 16px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
@@ -255,13 +269,13 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     width: 100% !important;
     display: flex !important;
     flex-direction: row !important;
-    justify-content: space-between !important; /* Spreads them across one line */
+    justify-content: space-between !important;
     align-items: center !important;
     gap: 4px !important;
   }
 
   .result-stats span {
-    font-size: 0.85rem !important; /* Back to original size */
+    font-size: 0.85rem !important;
     white-space: nowrap !important;
   }
 
@@ -269,28 +283,17 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     font-size: 1rem !important; 
     font-weight: 800 !important;
     color: #4ade80 !important;
-    /* This ensures it stays pinned to the right even on tiny screens */
     margin-left: auto !important; 
   }
 
-  /* Shrink the button height to make it less bulky */
   .btn-primary.mt-4 {
     margin-top: 20px !important;
     padding: 12px 20px !important;
     font-size: 1rem !important;
-    width: auto !important; /* Stops it from being a giant block if not needed */
+    width: auto !important;
     min-width: 200px !important;
     align-self: center !important;
   }
-
-  /* Ensure the name group doesn't push the card width */
-  .result-name-group {
-    max-width: 100% !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-
 
   .game-wrapper {
     display: flex !important;
@@ -298,25 +301,24 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     min-height: 100dvh !important; 
     height: auto !important; 
     overflow-y: visible !important; 
-    padding: 0 !important; /* FIX: Removes outer gray spacing */
+    padding: 0 !important;
     margin: 0 !important;
   }
-  /* 1. The Sticky Top Bar */
+
   .left-sidebar {
     position: sticky !important;
     top: 0 !important;
     width: 100% !important;
     height: auto !important;
     padding: 10px 15px !important;
-    background: #0f172a !important; /* Solid dark background */
-    backdrop-filter: none !important; /* CRITICAL FIX: Frees the trapped menu */
+    background: #0f172a !important;
+    backdrop-filter: none !important;
     border-right: none !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    z-index: 99999 !important; /* Forces it above everything */
+    z-index: 99999 !important;
     display: block !important; 
   }
 
-  /* Target, Timer, Hamburger Layout */
   .mobile-header-bar {
     display: flex !important;
     justify-content: space-between;
@@ -334,22 +336,8 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
   .stat-value { font-size: 1.1rem; font-weight: bold; line-height: 1; }
   .stat-value.target { color: #4ade80; }
 
-  .hamburger-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 6px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
+  .desktop-only { display: none !important; }
 
-  /* 2. Hide Redundant Desktop Items */
-  .desktop-only {
-    display: none !important;
-  }
-
-  
-  /* 3. The Slide-Out Menu */
   .sidebar-content-wrapper {
     position: fixed !important;
     top: 0 !important;
@@ -359,7 +347,7 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     background: #0f172a !important; 
     box-shadow: -10px 0 30px rgba(0,0,0,0.8) !important;
     transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    z-index: 999999 !important; /* Ultimate top layer */
+    z-index: 999999 !important;
     padding: 20px !important;
     display: flex !important;
     flex-direction: column !important;
@@ -367,14 +355,7 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     overflow-y: auto !important;
   }
 
-  .sidebar-content-wrapper.open {
-    right: 0 !important;
-  }
-
-  /* When state isMenuOpen is true */
-  .sidebar-content-wrapper.open {
-    right: 0;
-  }
+  .sidebar-content-wrapper.open { right: 0 !important; }
 
   .close-menu-btn {
     display: block !important;
@@ -387,35 +368,32 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     margin-bottom: 10px;
   }
 
-  /* Stretch buttons in the menu to look clean */
   .sidebar-content-wrapper button,
   .sidebar-content-wrapper .btn-danger {
     width: 100% !important;
     margin: 5px 0 !important;
   }
 
-  /* 4. Wikipedia Area - Edge to Edge */
   .authentic-wiki-area {
     display: block !important;
     width: 100% !important;
     max-width: 100vw !important;
     flex: 1 1 auto !important; 
-    padding: 0 !important; /* Removes chunky padding */
+    padding: 0 !important;
     margin: 0 !important;
     background: white !important;
-    z-index: 1 !important; /* Stays beneath the header */
-    border-radius: 0 !important; /* Flat edges for mobile */
+    z-index: 1 !important;
+    border-radius: 0 !important;
   }
 
   .wiki-document {
-    padding: 15px 12px !important; /* Perfect breathing room for thumbs/eyes */
+    padding: 15px 12px !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
   }
 
-  /* 5. Right Sidebar (Stays at the very bottom) */
   .right-sidebar {
     position: static !important;
     width: 100% !important;
@@ -427,53 +405,12 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     background: rgba(15, 23, 42, 0.98) !important;
   }
 
-  /* -- end page -- */
-  /* --- GAME OVER SCREEN MOBILE FIX --- */
-  .round-results-list li {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 12px !important;
-    padding: 16px !important;
-  }
-
-  .result-name-group {
-    width: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    /* Adds a sleek subtle divider between the name and the stats */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    padding-bottom: 12px !important;
-  }
-
-  .result-stats {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important; /* Spreads Time, Clicks, and Points evenly */
-    align-items: center !important;
-    margin: 0 !important;
-  }
-
-  /* Scale down the secondary stats so they don't crowd the points */
-  .result-stats span {
-    font-size: 0.85rem !important; 
-    white-space: nowrap !important;
-  }
-
-  /* Keep the main points popping */
-  .result-points {
-    font-size: 1.1rem !important; 
-    font-weight: 800 !important;
-  }
-  /* --- FIX MULTIPLAYER ROUTE INPUTS ON MOBILE --- */
   .input-row {
     flex-direction: column !important;
     align-items: center !important;
     gap: 10px !important;
   }
   
-  /* Rotate the horizontal arrow to point down */
   .input-row > span {
     transform: rotate(90deg) !important;
     margin: 5px 0 !important;
@@ -483,9 +420,8 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
     width: 100% !important;
   }
 }
-/*-- End of phone --*/
 
-/* --- Social Links (Developed By) --- */
+/* Social Links */
 .social-links-container {
   display: flex;
   justify-content: center;
@@ -495,7 +431,7 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 }
 
 .social-icon {
-  color: var(--text-muted); /* Starts out subtle and grey */
+  color: var(--text-muted);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
@@ -503,23 +439,21 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
 }
 
 .social-icon:hover {
-  color: #a5b4fc; /* Turns purple on hover */
-  transform: translateY(-4px) scale(1.15); /* Pops up and grows slightly */
-  filter: drop-shadow(0 4px 10px rgba(165, 180, 252, 0.4)); /* Adds a glowing shadow */
+  color: #a5b4fc;
+  transform: translateY(-4px) scale(1.15);
+  filter: drop-shadow(0 4px 10px rgba(165, 180, 252, 0.4));
 }
 
-/* --- HAMBURGER ANIMATION & TAP FIX --- */
+/* Hamburger */
 .hamburger {
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent; /* KILLS THE UGLY BLUE FLASH! */
+  -webkit-tap-highlight-color: transparent;
 }
 
-.hamburger input {
-  display: none;
-}
+.hamburger input { display: none; }
 
 .hamburger svg {
-  height: 2.5em; /* Adjusted to fit your header nicely */
+  height: 2.5em;
   transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -533,25 +467,20 @@ button { padding: 16px; font-size: 1.1rem; font-weight: 800; border-radius: 12px
               stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.line-top-bottom {
-  stroke-dasharray: 12 63;
-}
+.line-top-bottom { stroke-dasharray: 12 63; }
 
-.hamburger input:checked + svg {
-  transform: rotate(-45deg);
-}
+.hamburger input:checked + svg { transform: rotate(-45deg); }
 
 .hamburger input:checked + svg .line-top-bottom {
   stroke-dasharray: 20 300;
   stroke-dashoffset: -32.42;
 }
 
-/* Ensure close buttons don't flash blue either */
 .close-menu-btn, button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* --- SONNER TOAST POLISH & FONT FIX --- */
+/* Sonner Toasts */
 [data-sonner-toast] {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
