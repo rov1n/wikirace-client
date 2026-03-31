@@ -541,21 +541,26 @@ function App() {
       {/* --- INTERACTIVE DOT GRID BACKGROUND --- */}
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
           <DotGrid 
-            // dotSize={4}
-            // gap={25}
-            // baseColor="#1e293b"     /* Subtle dark blue for resting dots */
-            // activeColor="#818cf8"   /* WikiRace purple for hover/shockwave */
-            // proximity={100}
-            // shockRadius={200}
              dotSize={5}
-            gap={14}
-            baseColor="#271E37"
-            activeColor="#45f505"
-            proximity={110}
-            shockRadius={160}
-            shockStrength={5}
-            resistance={750}
-            returnDuration={1.5}
+              gap={15}
+              baseColor="#271E37"
+              activeColor="#93f806"
+              proximity={120}
+              shockRadius={250}
+              shockStrength={5}
+              resistance={750}
+              returnDuration={1.5}
+            
+
+          // dotSize={3}       // Very small dots
+          // gap={12}          // Very tight gap for a "fabric" look
+          // baseColor="#1e293b" 
+          // activeColor="#818cf8"
+          // proximity={100}
+          // shockRadius={300} // Larger shockwave for better feedback
+          // shockStrength={8}
+          // resistance={750}
+          // returnDuration={1.5}
           />
         </div>
 
