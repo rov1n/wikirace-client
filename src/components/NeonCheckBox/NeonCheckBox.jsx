@@ -1,5 +1,5 @@
 import React from 'react';
-import './NeonCheckbox.css';
+import './NeonCheckBox.css';
 
 const NeonCheckbox = ({ checked, onChange }) => {
   return (

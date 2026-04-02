@@ -4,10 +4,16 @@ import io from 'socket.io-client';
 import './App.css';
 import { getDailyChallenge } from './dailyPairs';
 import { Toaster, toast } from 'sonner';
+
+// Importing components
 import DotGrid from './components/DotGrid/DotGrid';
 import LeaveButton from './components/LeaveButton/LeaveButton';
 import NeonCheckbox from './components/NeonCheckBox/NeonCheckBox';
 import SocialCard from './components/SocialCard/SocialCard';
+import SplashCursor from './components/SplashCursor/SplashCursor';
+import SettingsMenu from './components/SettingsMenu/SettingsMenu';
+import MagnetLines from './components/MagnetLines/MagnetLines';
+
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://wikirace-server.onrender.com';
@@ -61,6 +67,29 @@ function App() {
   const scrollContainerRef = useRef(null);
 
   const [useSpoilers, setUseSpoilers] = useState(false);
+  // const [bgSettings, setBgSettings] = useState(() => {
+  //   const saved = localStorage.getItem('wikiRaceBgSettings');
+  //   return saved ? JSON.parse(saved) : { dotgrid: true, splash: false };
+  // });
+  const [bgSettings, setBgSettings] = useState(() => {
+    const saved = localStorage.getItem('wikiRaceBgSettings');
+    const parsed = saved ? JSON.parse(saved) : {};
+    // Merge saved settings with our new defaults!
+    return { dotgrid: true, splash: false, magnetlines: false, ...parsed };
+  });
+  // --- NEW: Detect if screen is mobile-sized (<= 768px) ---
+  const [isMobileDevice, setIsMobileDevice] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileDevice(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  // --------------------------------------------------------
+
+  useEffect(() => {
+    localStorage.setItem('wikiRaceBgSettings', JSON.stringify(bgSettings));
+  }, [bgSettings]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -676,7 +705,7 @@ function App() {
 
       <SocialCard />
       {/* --- INTERACTIVE DOT GRID BACKGROUND --- */}
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+        {/* <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
           <DotGrid 
              dotSize={5}
               gap={15}
@@ -687,19 +716,42 @@ function App() {
               shockStrength={5}
               resistance={750}
               returnDuration={1.5}
-            
-
-          // dotSize={3}       // Very small dots
-          // gap={12}          // Very tight gap for a "fabric" look
-          // baseColor="#1e293b" 
-          // activeColor="#818cf8"
-          // proximity={100}
-          // shockRadius={300} // Larger shockwave for better feedback
-          // shockStrength={8}
-          // resistance={750}
-          // returnDuration={1.5}
           />
-        </div>
+        </div> */}
+
+        {/* --- DYNAMIC BACKGROUNDS --- */}
+        {bgSettings.dotgrid && (
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -2 }}>
+            <DotGrid 
+              dotSize={5} gap={15} baseColor="#271E37" activeColor="#93f806"
+              proximity={120} shockRadius={250} shockStrength={5} resistance={750} returnDuration={1.5}
+            />
+          </div>
+        )}
+        
+        {/* ONLY render Splash Cursor if it's checked AND the user is NOT on a mobile device */}
+        {bgSettings.splash && !isMobileDevice && <SplashCursor />}
+        {/* ONLY render Magnet Lines if checked AND user is NOT on mobile */}
+        {bgSettings.magnetlines && !isMobileDevice && (
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -2 }}>
+            <MagnetLines
+              rows={12}              
+              columns={24}
+              containerSize="100%"
+              lineColor="#8b5cf6"
+              lineWidth="0.4vmin"
+              lineHeight="3vmin"
+              baseAngle={0}
+            />
+          </div>
+        )}
+
+        {/* Pass the isMobileDevice state down to the settings menu */}
+        <SettingsMenu 
+          bgSettings={bgSettings} 
+          setBgSettings={setBgSettings} 
+          isMobileDevice={isMobileDevice} 
+        />
 
       <div className="menu-wrapper fade-in">
         {gameState === 'LOBBY' && (

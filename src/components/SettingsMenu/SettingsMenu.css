@@ -1,0 +1,152 @@
+.settings-menu-container {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 100;
+  
+  /* --- DYNAMIC HEIGHT LOGIC --- */
+  width: 56px;
+  height: auto;             /* Lets the browser calculate height based on content */
+  min-height: 56px;         /* Forces it to stay a circle when closed */
+  max-height: 56px;         /* Clips the extra buttons when closed */
+  
+  border-radius: 28px;
+  background: rgba(30, 30, 40, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 24px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  display: flex;
+  flex-direction: column;
+}
+.settings-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.settings-menu-container:hover .settings-icon {
+  opacity: 1;
+}
+
+.settings-content {
+  padding: 0 16px 16px 16px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+/* Hover to expand */
+.settings-menu-container:hover {
+  width: 200px;
+  max-height: 500px; /* Give it a massive max-height to smoothly grow into */
+  border-radius: 20px;
+}
+
+.settings-menu-container:hover .settings-content {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0.1s;
+}
+
+/* =========================================
+   NEW CUSTOM STACKED CHECKBOX UI 
+   ========================================= */
+
+.customCheckBoxHolder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.customCheckBox {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 8px;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.6);
+  transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition-duration: 300ms;
+  transition-property: color, background-color, box-shadow;
+  display: flex;
+  height: 38px;
+  align-items: center;
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 2px 1px 0px inset, rgba(255, 255, 255, 0.1) 0px 1px 1px 0px;
+  outline: none;
+  justify-content: center;
+}
+
+.customCheckBox:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  box-shadow: rgba(0, 0, 0, 0.23) 0px -4px 1px 0px inset, rgba(255, 255, 255, 0.17) 0px -1px 1px 0px, rgba(0, 0, 0, 0.17) 0px 2px 4px 1px;
+}
+
+.customCheckBox .inner {
+  font-size: 0.9rem;
+  font-weight: 700;
+  pointer-events: none;
+  transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition-duration: 300ms;
+  transition-property: transform;
+  transform: translateY(0px);
+}
+
+.customCheckBox:hover .inner {
+  transform: translateY(-2px);
+}
+
+.customCheckBoxWrapper {
+  width: 100%;
+}
+
+/* Rounds the corners of the top and bottom buttons in the stack */
+.customCheckBoxWrapper:first-of-type .customCheckBox {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.customCheckBoxWrapper:last-of-type .customCheckBox {
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+/* Adds a separator line to all buttons EXCEPT the last one */
+.customCheckBoxWrapper:not(:last-of-type) .customCheckBox {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.customCheckBoxInput {
+  display: none;
+}
+
+/* ACTIVE/CHECKED STATE - Changed to match your purple theme. 
+   Change #8b5cf6 back to #2d6737 if you want the original green! */
+.customCheckBoxInput:checked + .customCheckBoxWrapper .customCheckBox {
+  background-color: #8b5cf6; 
+  color: white;
+  box-shadow: rgba(0, 0, 0, 0.23) 0px -4px 1px 0px inset, rgba(255, 255, 255, 0.17) 0px -1px 1px 0px, rgba(0, 0, 0, 0.17) 0px 2px 4px 1px;
+}
+
+.customCheckBoxInput:checked + .customCheckBoxWrapper .customCheckBox .inner {
+  transform: translateY(-2px);
+}
+
+.customCheckBoxInput:checked + .customCheckBoxWrapper .customCheckBox:hover {
+  background-color: #7c3aed; /* Slightly darker purple on hover */
+  box-shadow: rgba(0, 0, 0, 0.26) 0px -4px 1px 0px inset, rgba(255, 255, 255, 0.17) 0px -1px 1px 0px, rgba(0, 0, 0, 0.15) 0px 3px 6px 2px;
+}
+
+.customCheckBoxWrapper .customCheckBox:hover .inner {
+  transform: translateY(-2px);
+}
