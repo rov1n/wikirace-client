@@ -5,6 +5,10 @@ import './App.css';
 import { getDailyChallenge } from './dailyPairs';
 import { Toaster, toast } from 'sonner';
 import DotGrid from './components/DotGrid/DotGrid';
+import LeaveButton from './components/LeaveButton/LeaveButton';
+import NeonCheckbox from './components/NeonCheckBox/NeonCheckBox';
+import SocialCard from './components/SocialCard/SocialCard';
+
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://wikirace-server.onrender.com';
 const socket = io(BACKEND_URL);
@@ -55,6 +59,8 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
+
+  const [useSpoilers, setUseSpoilers] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -186,6 +192,21 @@ function App() {
     fetchArticle(dailyData.pair.start);
   };
 
+  const leaveLobby = () => {
+    // 1. Momentarily disconnect the socket. This forces the backend to 
+    // immediately remove the player from the room so they don't leave a "ghost" behind.
+    socket.disconnect();
+    
+    // 2. Reconnect them half a second later so they can join a new room if they want.
+    setTimeout(() => socket.connect(), 500);
+
+    // 3. Reset local UI state
+    setGameState('LOBBY');
+    setRoomCode('');
+    setPlayers([]);
+    setChatMessages([]);
+  };
+
   const generateShareText = (dayNumber, clicks, timeStr, optimalClicks, points) => {
     let ratingEmoji = '🟩'; 
     if (clicks > optimalClicks + 2) ratingEmoji = '🟨'; 
@@ -198,8 +219,15 @@ function App() {
     }
     pathBlocks += ratingEmoji; 
 
-    // Updated the URL to point to your live site!
-    const shareString = `WikiRace Daily #${dayNumber}\n🏆 ${points} pts\n⏱️ ${timeStr} | 🖱️ ${clicks} Clicks\n${pathBlocks}\n\nPlay at: https://rovin.vercel.app`;
+    // --- NEW: Conditionally append the Spoiler Route ---
+    let routeText = "";
+    if (useSpoilers && path && path.length > 0) {
+        const formattedPath = path.map(p => p.replace(/_/g, ' ')).join(' ➔ ');
+        routeText = `\n\nRoute:\n||${formattedPath}||`;
+    }
+
+    // Notice we added ${routeText} right before the link!
+    const shareString = `WikiRace Daily #${dayNumber}\n🏆 ${points} pts\n⏱️ ${timeStr} | 🖱️ ${clicks} Clicks\n${pathBlocks}${routeText}\n\nPlay at: https://rovin.vercel.app`;
 
     const shareAction = new Promise(async (resolve, reject) => {
       
@@ -260,30 +288,136 @@ function App() {
     });
   };
 
+  const shareMultiplayerMatch = () => {
+    const myResult = roundResults.find(p => p.id === socket.id);
+    if (!myResult) return;
+
+    let routeText = "";
+    if (useSpoilers && path && path.length > 0) {
+        const formattedPath = path.map(p => p.replace(/_/g, ' ')).join(' ➔ ');
+        routeText = `\n\nRoute:\n||${formattedPath}||`;
+    }
+
+    const shareString = `WikiRace Multiplayer\n🏁 Target: ${targetNode.replace(/_/g, ' ')}\n🏆 ${myResult.lastPoints || 0} pts\n⏱️ ${formatTime(myResult.lastTime || 0)} | 🖱️ ${myResult.lastClicks || 0} Clicks${routeText}\n\nPlay at: https://rovin.vercel.app`;
+
+    // Modern Clipboard
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(shareString);
+      toast.success('📋 Match results copied!');
+      return;
+    }
+  };
+
+  // new code was added here 
+  const copyMyRoute = async () => {
+    if (!path || path.length === 0) {
+      toast.error('No route to copy!');
+      return;
+    }
+
+    const formattedPath = path.map(p => p.replace(/_/g, ' ')).join(' ➔ ');
+    
+    // Conditionally wrap in || if the toggle is checked
+    const finalRouteString = useSpoilers ? `||${formattedPath}||` : formattedPath;
+    
+    const textToCopy = `My WikiRace Route:\n${finalRouteString}\n\nPlay at: https://rovin.vercel.app`;
+
+    const copyAction = new Promise(async (resolve, reject) => {
+      // 1. Try Modern Clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          resolve(useSpoilers ? 'Spoiler route copied!' : 'Route copied!');
+          return;
+        } catch (err) {
+          console.error('Clipboard error:', err);
+        }
+      }
+
+      // 2. Fallback for older browsers / local network
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "absolute";
+        textArea.style.left = "-999999px";
+        document.body.prepend(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+        resolve(useSpoilers ? 'Spoiler route copied!' : 'Route copied!');
+      } catch (err) {
+        reject('Failed to copy route.');
+      }
+    });
+
+    toast.promise(copyAction, {
+      loading: 'Copying route...',
+      success: (msg) => `📋 ${msg}`, 
+      error: (err) => `❌ ${err}`,     
+    });
+  };
+
+  //ends here
+
+
   // --- LOBBY & GAME CONTROL FUNCTIONS ---
+  // const joinLobby = (e) => {
+  //   e.preventDefault();
+  //   if (roomCode && playerName) {
+  //     const timeout = setTimeout(() => {
+  //       // Unique ID ensures only one "unreachable" toast appears
+  //       toast.error("🔌 Server is unreachable. Please try again later.", {
+  //         id: 'join-timeout'
+  //       });
+  //     }, 5000);
+
+  //     socket.emit('joinRoom', roomCode, playerName, (response) => {
+  //       clearTimeout(timeout);
+  //       toast.dismiss('join-timeout'); // Dismiss any existing timeout warning
+
+  //       if (response.success) {
+  //         setGameState('WAITING');
+  //         setErrorMsg('');
+  //       } else {
+  //         setErrorMsg(response.message);
+  //         toast.error(response.message, { id: 'lobby-error' });
+  //       }
+  //     });
+  //   }
+  // };
+
   const joinLobby = (e) => {
     e.preventDefault();
-    if (roomCode && playerName) {
-      const timeout = setTimeout(() => {
-        // Unique ID ensures only one "unreachable" toast appears
-        toast.error("🔌 Server is unreachable. Please try again later.", {
-          id: 'join-timeout'
-        });
-      }, 5000);
-
-      socket.emit('joinRoom', roomCode, playerName, (response) => {
-        clearTimeout(timeout);
-        toast.dismiss('join-timeout'); // Dismiss any existing timeout warning
-
-        if (response.success) {
-          setGameState('WAITING');
-          setErrorMsg('');
-        } else {
-          setErrorMsg(response.message);
-          toast.error(response.message, { id: 'lobby-error' });
-        }
-      });
+    
+    // 1. Only check for playerName. We WANT to allow blank roomCodes now!
+    if (!playerName) {
+      toast.error('Please enter an Alias!');
+      return;
     }
+
+    const timeout = setTimeout(() => {
+      // Unique ID ensures only one "unreachable" toast appears
+      toast.error("🔌 Server is unreachable. Please try again later.", {
+        id: 'join-timeout'
+      });
+    }, 5000);
+
+    // 2. Emit the joinRoom event (roomCode might be '' here, which is perfectly fine)
+    socket.emit('joinRoom', roomCode, playerName, (response) => {
+      clearTimeout(timeout);
+      toast.dismiss('join-timeout'); // Dismiss any existing timeout warning
+
+      if (response.success) {
+        // 3. OVERWRITE the local room code with the official one generated/confirmed by the server
+        setRoomCode(response.roomCode); 
+        
+        setGameState('WAITING');
+        setErrorMsg('');
+      } else {
+        setErrorMsg(response.message);
+        toast.error(response.message, { id: 'lobby-error' });
+      }
+    });
   };
 
   const fetchSuggestions = async (query, type) => {
@@ -539,6 +673,8 @@ function App() {
   if (gameState === 'LOBBY' || gameState === 'WAITING' || gameState === 'GAMEOVER' || gameState === 'GAMEOVER_DAILY') {
     return (
       <>
+
+      <SocialCard />
       {/* --- INTERACTIVE DOT GRID BACKGROUND --- */}
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
           <DotGrid 
@@ -604,7 +740,7 @@ function App() {
             {errorMsg && <div className="error-banner" style={{ fontSize: '0.9rem' }}>{errorMsg}</div>}
             <form onSubmit={joinLobby} className="form-group" style={{ gap: '10px' }}>
               <input placeholder="Your Alias" value={playerName} onChange={(e) => setPlayerName(e.target.value)} required style={{ padding: '10px', fontSize: '0.9rem' }} />
-              <input placeholder="Room Code" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} required style={{ padding: '10px', fontSize: '0.9rem' }} />
+              <input placeholder="Room Code" value={roomCode} onChange={(e) => setRoomCode(e.target.value.toUpperCase())} style={{ padding: '10px', fontSize: '0.9rem' }} />
               <button type="submit" className="btn-primary" style={{ padding: '10px', fontSize: '1rem', marginTop: '5px' }}>Join Match 🚀</button>
             </form>
           </div>
@@ -629,7 +765,35 @@ function App() {
                 🖱️ {dailyStats?.clicks || 0}
               </div>
             </div>
-            
+
+
+            {/* here new copy button */}
+
+            {/* --- NEW COPY ROUTE BUTTON WITH SPOILER TOGGLE --- */}
+            {/* --- NEON SPOILER TOGGLE --- */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '12px', 
+              marginBottom: '15px' 
+            }}>
+              <NeonCheckbox 
+                checked={useSpoilers} 
+                onChange={(e) => setUseSpoilers(e.target.checked)} 
+              />
+              <span 
+                onClick={() => setUseSpoilers(!useSpoilers)}
+                style={{ 
+                  fontSize: '0.85rem', 
+                  color: 'var(--text-muted)', 
+                  cursor: 'pointer',
+                  userSelect: 'none' /* Prevents text highlighting when rapidly clicking */
+                }}
+              >
+                Include route as spoiler (Discord/Telegram)
+              </span>
+            </div>
             <button 
               onClick={() => generateShareText(
                 getDailyChallenge().dayNumber, 
@@ -661,8 +825,17 @@ function App() {
             <div className="lobby-controls">
               <div className="lobby-header">
                 <h2>Lobby: <span className="highlight-text">{roomCode}</span></h2>
-                <button onClick={copyInviteLink} className="btn-small">🔗 Copy Link</button>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '8px', 
+                  alignItems: 'center',
+                  flexShrink: 0 
+                }}>
+                  <LeaveButton onClick={leaveLobby} />
+                  <button onClick={copyInviteLink} className="btn-small">🔗 Copy Link</button>
+                </div>
               </div>
+              
 
               <div className="player-list">
                 <h3>🏆 Match Leaderboard</h3>
@@ -753,7 +926,7 @@ function App() {
                     </span>
                   </div>
                   
-                  {p.status === 'FINISHED' ? (
+                  {/* {p.status === 'FINISHED' ? (
                     <div className="result-stats">
                       <span>⏱️ {formatTime(p.lastTime)}</span>
                       <span>🖱️ {p.lastClicks} clicks</span>
@@ -763,17 +936,62 @@ function App() {
                     <div className="result-stats">
                       <span style={{color: '#ef4444', fontWeight: '800'}}>0 pts</span>
                     </div>
+                  )} */}
+                  {p.status === 'FINISHED' ? (
+                    <div className="result-stats">
+                      <span>⏱️ {formatTime(p.lastTime)}</span>
+                      <span>🖱️ {p.lastClicks} clicks</span>
+                      <span className="result-points">+{p.lastPoints} pts</span>
+                    </div>
+                  ) : (
+                    <div className="result-stats">
+                      {/* FIX: Add faded placeholders so Flexbox can perfectly balance the row */}
+                      <span style={{ opacity: 0.5 }}>⏱️ --:--</span>
+                      <span style={{ opacity: 0.5 }}>🖱️ -- clicks</span>
+                      <span className="result-points" style={{ color: '#ef4444' }}>0 pts</span>
+                    </div>
                   )}
                 </li>
               ))}
             </ul>
+
+              {/* here new copy button */}
+              {/* --- NEON SPOILER TOGGLE --- */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '12px', 
+              marginBottom: '15px' 
+            }}>
+              <NeonCheckbox 
+                checked={useSpoilers} 
+                onChange={(e) => setUseSpoilers(e.target.checked)} 
+              />
+              <span 
+                onClick={() => setUseSpoilers(!useSpoilers)}
+                style={{ 
+                  fontSize: '0.85rem', 
+                  color: 'var(--text-muted)', 
+                  cursor: 'pointer',
+                  userSelect: 'none' /* Prevents text highlighting when rapidly clicking */
+                }}
+              >
+                Include route as spoiler (Discord/Telegram)
+              </span>
+            </div>
+
+            <button onClick={shareMultiplayerMatch} className="btn-success" style={{ width: '100%', marginBottom: '15px' }}>
+              📤 Share Match Results
+            </button>
 
             <button 
               onClick={() => {
                 setGameState('WAITING');
                 setHasFinished(false); 
               }} 
-              className="btn-primary mt-4"
+              // className="btn-primary mt-4"
+              className="btn-primary" style={{ width: '100%', marginBottom: '10px' }}
             >
               Return to Lobby 🔄
             </button>
@@ -961,7 +1179,8 @@ function App() {
               ))}
             </ul>
           </div>
-
+              <SocialCard />
+{/*               
           <div className="sidebar-section" style={{ padding: '25px 20px', textAlign: 'center', marginTop: 'auto', marginBottom: 0 }}>
             <div style={{ color: '#a5b4fc', fontSize: '1.2rem', marginTop: '5px', fontWeight: '800' }}>
               Socials
@@ -983,7 +1202,9 @@ function App() {
             <a href="https://ko-fi.com/rovindsouza" target="_blank" rel="noopener noreferrer" className="kofi-button">
               ☕ Support on Ko-fi
             </a>
-          </div>
+          </div> */}
+
+          {/* Socials ends */}
         </aside>
 
       </div>

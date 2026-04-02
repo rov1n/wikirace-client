@@ -1,0 +1,117 @@
+.social-card {
+  /* --- POSITIONING --- */
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+
+  /* --- CLOSED STATE (Small Circular Button) --- */
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  
+  background: lightgrey;
+  overflow: hidden;
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 24px;
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  flex-shrink: 0;
+}
+
+.social-card .background {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 100% 107%, #ff89cc 0%, #9cb8ec 30%, #00ffee 60%, #62c2fe 100%);
+}
+
+.social-card .logo {
+  position: absolute;
+  right: 50%;
+  bottom: 50%;
+  transform: translate(50%, 50%);
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none; /* Lets you click through the logo */
+}
+
+.social-card .logo-svg {
+  fill: white;
+  width: 28px;
+  height: 28px;
+}
+
+.social-card .icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+}
+
+.social-card .svg {
+  fill: rgba(255, 255, 255, 0.797);
+  width: 100%;
+  transition: all 0.4s ease-in-out;
+}
+
+/* --- THE WEDGES --- */
+.social-card .box {
+  position: absolute;
+  padding: 10px;
+  text-align: right;
+  background: rgba(255, 255, 255, 0.389);
+  border-top: 2px solid rgb(255, 255, 255);
+  border-right: 1px solid white;
+  border-radius: 10% 13% 42% 0% / 10% 12% 75% 0%;
+  box-shadow: rgba(100, 100, 111, 0.364) -7px 7px 29px 0px;
+  transform-origin: bottom left;
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  display: block;
+  cursor: pointer;
+}
+
+.social-card .box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: all 0.4s ease-in-out;
+}
+
+.social-card .box:hover .svg {
+  fill: white;
+}
+
+.social-card .box1 { width: 70%; height: 70%; bottom: -70%; left: -70%; }
+.social-card .box1::before { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #ff53d4 60%, #62c2fe 90%); }
+.social-card .box1:hover::before { opacity: 1; }
+.social-card .box1:hover .icon .svg { filter: drop-shadow(0 0 5px white); }
+
+.social-card .box2 { width: 50%; height: 50%; bottom: -50%; left: -50%; transition-delay: 0.1s; }
+.social-card .box2::before { background: radial-gradient(circle at 30% 107%, #91e9ff 0%, #00ACEE 90%); }
+.social-card .box2:hover::before { opacity: 1; }
+.social-card .box2:hover .icon .svg { filter: drop-shadow(0 0 5px white); }
+
+.social-card .box3 { width: 30%; height: 30%; bottom: -30%; left: -30%; transition-delay: 0.2s; }
+.social-card .box3::before { background: radial-gradient(circle at 30% 107%, #969fff 0%, #b349ff 90%); }
+.social-card .box3:hover::before { opacity: 1; }
+.social-card .box3:hover .icon .svg { filter: drop-shadow(0 0 5px white); }
+
+.social-card .box4 { width: 10%; height: 10%; bottom: -10%; left: -10%; transition-delay: 0.3s; }
+
+/* =========================================
+   OPEN STATE (Triggered on Hover)
+   ========================================= */
+.social-card:hover {
+  width: 140px;
+  height: 140px;
+  border-radius: 24px; /* Squares out slightly to fit the wedges */
+}
+
+.social-card:hover .box {
+  bottom: -1px;
+  left: -1px;
+}
+
+.social-card:hover .logo {
+  transform: translate(0, 0) scale(0.85); /* Shrinks the logo slightly to get out of the way */
+  bottom: 12px;
+  right: 12px;
+}
