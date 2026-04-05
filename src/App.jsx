@@ -418,28 +418,42 @@ function App() {
   const joinLobby = (e) => {
     e.preventDefault();
     
-    // 1. Only check for playerName. We WANT to allow blank roomCodes now!
     if (!playerName) {
       toast.error('Please enter an Alias!');
       return;
     }
 
     const timeout = setTimeout(() => {
-      // Unique ID ensures only one "unreachable" toast appears
       toast.error("🔌 Server is unreachable. Please try again later.", {
         id: 'join-timeout'
       });
     }, 5000);
 
-    // 2. Emit the joinRoom event (roomCode might be '' here, which is perfectly fine)
+    // we emit 'joinRoom' with (requestedCode, playerName, callback)
     socket.emit('joinRoom', roomCode, playerName, (response) => {
       clearTimeout(timeout);
-      toast.dismiss('join-timeout'); // Dismiss any existing timeout warning
+      toast.dismiss('join-timeout');
+      
+      // 👈 Look for this in your browser console!
+      console.log("Server responded with:", response); 
 
       if (response.success) {
-        // 3. OVERWRITE the local room code with the official one generated/confirmed by the server
-        setRoomCode(response.roomCode); 
+        // Fallback: If the server sends a code, use it. Otherwise, use what the player typed.
+        const actualRoomCode = response.roomCode || roomCode;
         
+        // Safety Net: If both are empty/missing, the backend is outdated.
+        if (!actualRoomCode) {
+          toast.error("Backend failed to assign a room code. Please deploy the latest server.js!");
+          return; 
+        }
+
+        // 1. UPDATE STATE
+        setRoomCode(actualRoomCode); 
+        
+        // 2. UPDATE URL
+        const newUrl = `${window.location.origin}?room=${actualRoomCode}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+
         setGameState('WAITING');
         setErrorMsg('');
       } else {
@@ -603,7 +617,7 @@ function App() {
         console.error('Modern clipboard failed:', err);
       }
     }
-
+    
     // 2. Legacy Fallback (Works on local HTTP networks like 192.168.x.x)
     try {
       const textArea = document.createElement("textarea");
